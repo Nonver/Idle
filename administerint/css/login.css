@@ -1,0 +1,22 @@
+/* login.css */
+:root{--primary:#3b82f6;--primary-dk:#2563eb;--danger:#dc2626;--radius:12px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,"SF Pro Display","PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e2e8f0;-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit;font-size:15px}
+button{cursor:pointer;border:none}
+.login-bg::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,.15),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(139,92,246,.1),transparent 60%)}
+
+.login-card{width:100%;max-width:380px;background:#1e293b;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:40px 32px 32px;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;z-index:1}
+.login-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:1px;margin-bottom:20px}
+.login-card h1{margin:0;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.login-sub{margin:6px 0 28px;font-size:13px;color:#64748b;font-weight:500}
+.login-card form{display:flex;flex-direction:column;gap:12px}
+.login-card input{background:#0f172a;border:1.5px solid #334155;border-radius:10px;padding:13px 16px;width:100%;color:#e2e8f0;-webkit-appearance:none;appearance:none;transition:border-color .2s}
+.login-card input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.btn-login{background:var(--primary);color:#fff;padding:13px;border-radius:10px;font-weight:700;font-size:15px;transition:all .18s;margin-top:4px}
+.btn-login:hover{background:var(--primary-dk)}
+.btn-login:disabled{opacity:.55;cursor:not-allowed}
+.btn-login:active{transform:scale(.98)}
+.login-msg{min-height:22px;margin:14px 0 0;font-size:13px;font-weight:700;text-align:center;color:var(--danger);opacity:0;transition:opacity .2s}
+.login-msg.visible{opacity:1}

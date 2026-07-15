@@ -1,0 +1,8 @@
+/* orders.css — 订单管理页（布局/表格复用 shared.css） */
+.col-amount{font-variant-numeric:tabular-nums;font-weight:600;color:var(--danger)}
+.col-goods{display:flex;align-items:center;gap:10px}
+.col-goods .thumb{cursor:zoom-in}
+.col-goods__title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-ops{display:flex;gap:8px;margin-top:8px}
+.btn-ok{background:#16a34a;color:#fff;border-color:#16a34a}
+.btn-ok:hover{background:#15803d}

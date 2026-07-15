@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#13c2a3" />
+  <title>闲置微铺 - 个人中心</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/user.css" />
+</head>
+<body data-title="个人中心">
+<div id="navbar"></div>
+
+<main class="container" id="userApp">
+  <!-- 未登录 -->
+  <section v-if="!isLoggedIn" class="auth-wrap">
+    <div class="card auth-guest">
+      <div class="auth-guest__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <p class="auth-guest__text">登录后查看个人中心</p>
+      <a href="login.html" class="btn-login">去 登录 / 注 册</a>
+    </div>
+  </section>
+
+  <!-- 已登录 -->
+  <section v-else>
+    <div class="card profile-head">
+      <div
+        class="profile-head__avatar"
+        :style="user.avatar ? { backgroundImage:'url('+imgUrl(user.avatar)+')', backgroundSize:'cover', backgroundPosition:'center', color:'transparent' } : {}"
+      >{{ user.avatar ? '' : (user.nickname||'?').slice(0,1) }}</div>
+      <div>
+        <p class="profile-head__name">{{ user.nickname }}</p>
+        <div class="profile-head__sub">{{ '账号：' + user.username }}</div>
+      </div>
+    </div>
+
+    <div class="profile-balance">
+      <span class="profile-balance__label">我的余额</span>
+      <span class="profile-balance__num">&yen;{{ user.balance || 0 }}</span>
+    </div>
+
+    <div class="menu">
+      <div v-for="item in menuItems" :key="item.act" class="menu__item" @click="onMenuAct(item)">
+        <span class="menu__icon" v-html="item.icon"></span>
+        <span class="menu__label">{{ item.label }}</span><span class="menu__arrow">&rsaquo;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 订单弹窗（必须在 #userApp 内，Vue 才能管理 v-if / @click） -->
+  <transition name="modal-fade">
+    <div v-if="showOrders" class="modal-mask" @click.self="showOrders=false">
+      <div class="modal-card">
+        <div class="modal-head"><h3>我的订单（{{ orderList.length }}）</h3><button @click="showOrders=false">&times;</button></div>
+        <div class="modal-body" style="max-height:50vh;overflow:auto">
+          <template v-if="orderList.length">
+            <div v-for="o in orderList" :key="o.id" class="order-item">
+              <div class="order-top"><span>{{ o.title }}</span><span>&yen;{{ o.price }}</span></div>
+              <div class="order-meta">{{ o.publisher }} &middot; {{ fmtTime(o.created_at) }} &middot; {{ orderStatusText(o.status) }}</div>
+            </div>
+          </template>
+          <div v-else class="empty-state">暂无订单</div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-ghost" @click="showOrders=false">关闭</button></div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- 提现弹窗（必须在 #userApp 内） -->
+  <transition name="modal-fade">
+    <div v-if="showWithdraw" class="modal-mask" @click.self="showWithdraw=false">
+      <div class="modal-card">
+        <div class="modal-head"><h3>提现</h3><button @click="showWithdraw=false">&times;</button></div>
+        <div class="modal-body">
+          <input type="number" min="1" placeholder="提现金额（¥）" v-model.number="withdrawAmount" class="finp" />
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" @click="showWithdraw=false">取消</button>
+          <button class="btn btn-primary" @click="doWithdraw" :disabled="withdrawing">{{ withdrawing ? '提交中...' : '确认提现' }}</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+</main>
+
+<div id="footer"></div>
+
+<script src="../js/v3.2.8/vue.global.prod.js"></script>
+<script src="js/common.js"></script>
+<script src="js/user.js"></script>
+</body>
+</html>

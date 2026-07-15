@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>充值 - 闲置微铺</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/recharge.css" />
+</head>
+<body data-title="账户充值" data-back="user.html">
+<div id="navbar"></div>
+
+<main class="container rc-container" id="rcApp">
+
+  <!-- 余额卡片 -->
+  <section class="rc-card rc-balance-card">
+    <div class="rc-balance-label">当前余额</div>
+    <div class="rc-balance-num">&yen;{{ balance }}</div>
+  </section>
+
+  <!-- 充值金额 -->
+  <section class="rc-card">
+    <h3 class="rc-section-title">充值金额</h3>
+    <div class="rc-amount-input-wrap">
+      <span class="rc-currency">&yen;</span>
+      <input v-model.number="amount" type="number" min="1" step="0.01" placeholder="输入金额" class="rc-amount-input" />
+    </div>
+    <div class="rc-quick">
+      <button
+        v-for="v in [50,100,200,500]" :key="v"
+        :class="{ active: amount===v }"
+        @click="amount=v"
+      >{{ v }}元</button>
+    </div>
+  </section>
+
+  <!-- 收款账户（从后台配置读取） -->
+  <section class="rc-card" v-if="accounts.length > 0">
+    <h3 class="rc-section-title">请向以下账户转账</h3>
+    <p class="rc-hint">转账后系统会自动确认到账，或联系客服手动处理。</p>
+    <div v-for="(item,idx) in accounts" :key="idx" class="rc-account-item">
+      <div class="rc-acct-head">
+        <span class="rc-acct-name">{{ item.account_name || ('收款账户'+(idx+1)) }}</span>
+        <span class="rc-acct-channel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> {{ chLabel(item.channel) }}</span>
+      </div>
+      <div class="rc-acct-no-wrap">
+        <span class="rc-acct-no" :title="'点击全选后 Ctrl+C 复制'" @click="copyText(item.account_no)">{{ item.account_no }}</span>
+        <button class="rc-copy-btn" @click="copyText(item.account_no)">复制账号</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 无账户提示 -->
+  <section class="rc-card" v-else-if="accountsLoaded">
+    <div class="rc-empty">暂未配置收款账户，请联系管理员</div>
+  </section>
+
+  <!-- 提交按钮 -->
+  <button class="rc-submit" :disabled="submitting" @click="submitRecharge">{{ submitting ? '提交中...' : '提交充值' }}</button>
+  <a href="user.html" class="rc-back">返回个人中心</a>
+
+</main>
+
+<div id="footer"></div>
+
+<script src="../js/v3.2.8/vue.global.prod.js"></script>
+<script src="js/common.js"></script>
+<script src="js/recharge.js"></script>
+</body>
+</html>

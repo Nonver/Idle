@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>闲置微铺 · 员工使用手册</title>
+<style>
+  :root{
+    --primary:#13c2a3; --primary-d:#0e9e83; --primary-soft:#e6faf5;
+    --accent:#ff7a59; --bg:#f4f6f8; --surface:#fff;
+    --text:#1f2937; --text-soft:#6b7280; --border:#e5e7eb;
+    --warn:#f59e0b; --ok:#10b981; --bad:#ef4444; --shadow:0 2px 10px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:linear-gradient(135deg,var(--primary),#36d1dc);color:#fff;padding:26px 24px;}
+  .topbar h1{margin:0;font-size:24px;}
+  .topbar p{margin:6px 0 0;opacity:.92;font-size:14px;}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 60px;}
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin:22px 0 18px;flex-wrap:wrap;}
+  .tab{flex:1;min-width:140px;text-align:center;padding:13px 10px;border:1px solid var(--border);background:var(--surface);border-radius:12px;cursor:pointer;font-weight:700;color:var(--text-soft);transition:.18s;}
+  .tab:hover{border-color:var(--primary);}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:var(--shadow);}
+  .panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 26px;box-shadow:var(--shadow);}
+  .panel.active{display:block;}
+  .panel h2{margin:0 0 4px;font-size:20px;color:var(--primary-d);}
+  .panel h3{margin:26px 0 8px;font-size:16px;border-left:4px solid var(--primary);padding-left:10px;}
+  .panel p,.panel li{font-size:14.5px;color:#374151;}
+  .lead{color:var(--text-soft);margin:0 0 8px;}
+  ol,ul{padding-left:22px;}
+  li{margin:5px 0;}
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;align-items:stretch;}
+  .step{flex:1;min-width:130px;background:var(--primary-soft);border-radius:10px;padding:12px 14px;position:relative;}
+  .step b{display:block;color:var(--primary-d);font-size:13px;}
+  .step span{font-size:13px;color:#374151;}
+  .step:not(:last-child)::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--primary);font-weight:800;}
+  /* callouts */
+  .note{border-radius:10px;padding:12px 14px;margin:12px 0;font-size:13.5px;}
+  .note.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;}
+  .note.info{background:var(--primary-soft);border:1px solid #a7e8d8;color:#0e6b58;}
+  .note.danger{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:5px;font-size:13px;color:#be185d;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px;}
+  th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;}
+  th{background:#f8fafc;color:var(--text-soft);font-weight:700;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;}
+  .badge.warn{background:#fef3c7;color:#92400e;}
+  .badge.ok{background:#d1fae5;color:#065f46;}
+  .badge.bad{background:#fee2e2;color:#991b1b;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr;}.step::after{display:none;}}
+  footer{text-align:center;color:var(--text-soft);font-size:12.5px;padding:20px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>闲置微铺 · 员工使用手册</h1>
+  <p>二手闲置交易平台 — 前端使用 &amp; 后端管理总览（担保交易 / 余额制 / 审核制）</p>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" data-tab="fe">前端使用手册</div>
+    <div class="tab" data-tab="be">后端管理手册</div>
+  </div>
+
+  <!-- ============ 前端 ============ -->
+  <section class="panel active" id="fe">
+    <h2>前端使用手册</h2>
+    <p class="lead">面向普通用户（买家 / 卖家）。入口页面位于 <code>page/</code> 目录，首页为站点根 <code>index.html</code>。</p>
+
+    <h3>一、项目简介与整体流程</h3>
+    <p>闲置微铺是一个 C2C 二手交易平台：用户注册登录后，可发布闲置商品、浏览购买、管理订单，并通过余额进行担保交易。资金由<strong>平台托管</strong>，买家付款后款项暂不打给卖家，待后台「确认发货」才结算，或「驳回」则退款。</p>
+    <div class="flow">
+      <div class="step"><b>1 注册/登录</b><span>auth.php 鉴权</span></div>
+      <div class="step"><b>2 发布商品</b><span>products.php 上架</span></div>
+      <div class="step"><b>3 浏览/购买</b><span>order.php 扣款托管</span></div>
+      <div class="step"><b>4 后台发货</b><span>admin 确认/驳回</span></div>
+      <div class="step"><b>5 结算</b><span>打款 or 退款</span></div>
+    </div>
+
+    <h3>二、页面与功能对照</h3>
+    <table>
+      <tr><th>页面</th><th>文件</th><th>主要功能</th></tr>
+      <tr><td>首页</td><td><code>index.html</code></td><td>商品轮播、商品网格、点击商品图放大、点「购买」弹确认框</td></tr>
+      <tr><td>登录/注册</td><td><code>page/login.html</code></td><td>账号登录、注册（可上传头像）</td></tr>
+      <tr><td>个人中心</td><td><code>page/user.html</code></td><td>头像/昵称/余额、充值、提现、订单管理、改密、退出</td></tr>
+      <tr><td>商品管理</td><td><code>page/manage.html</code></td><td>发布商品（标题/价格/图片/描述）、我的商品列表、下架/删除</td></tr>
+      <tr><td>订单管理</td><td><code>page/orders.html</code></td><td>我的购买订单，按状态筛选：待发货 / 已完成 / 已驳回</td></tr>
+      <tr><td>充值</td><td><code>page/recharge.html</code></td><td>提交充值申请（需后台审核后才入余额）</td></tr>
+    </table>
+
+    <h3>三、核心操作流程</h3>
+    <h4 style="margin:10px 0 4px;color:#374151">① 注册 / 登录</h4>
+    <ol>
+      <li>打开 <code>page/login.html</code>，点「注册」填写账号、密码、昵称（可选上传头像）。</li>
+      <li>注册/登录成功后进入个人中心，顶部显示头像、昵称与余额。</li>
+    </ol>
+    <h4 style="margin:14px 0 4px;color:#374151">② 发布商品（卖家）</h4>
+    <ol>
+      <li>进入「管理」页 → 填写标题、价格、描述，上传商品图（建议正方形 120×120 以上）。</li>
+      <li>提交后商品上架，首页即可被其他用户看到。</li>
+    </ol>
+    <h4 style="margin:14px 0 4px;color:#374151">③ 购买（担保交易，买家）</h4>
+    <ol>
+      <li>首页点商品「购买」→ 弹窗确认 → 点「确认支付」。</li>
+      <li>系统<strong>立即扣减买家余额</strong>，资金进入<strong>平台托管</strong>（订单状态：<span class="badge warn">待发货</span>），同时商品自动下架。</li>
+      <li>在「订单管理」可查看订单状态。</li>
+    </ol>
+    <h4 style="margin:14px 0 4px;color:#374151">④ 订单管理</h4>
+    <ol>
+      <li>「订单管理」按 Tab 切换：全部 / 待发货 / 已完成 / 已驳回。</li>
+      <li>待发货 = 平台托管中；已完成 = 后台已确认发货并打款给卖家；已驳回 = 后台驳回，款项已退回你的余额。</li>
+    </ol>
+    <h4 style="margin:14px 0 4px;color:#374151">⑤ 充值 / 提现</h4>
+    <ol>
+      <li>个人中心点「充值」→ 填金额 → 提交后生成<strong>待审核</strong>充值单，后台审批通过余额才增加。</li>
+      <li>点「提现」→ 填金额 → 提交后冻结对应余额，生成待审核提现单，后台审批通过才实际打款。</li>
+    </ol>
+
+    <div class="note warn"><b>注意：</b>充值与提现均为<strong>审核制</strong>，提交后不会立即到账，需等待后台管理员审批。余额不足时购买/提现会被拒绝。</div>
+    <div class="note info"><b>小技巧：</b>首页与订单里的图片均可点击放大，放大后可保存原图。</div>
+
+    <h3>四、常见问题</h3>
+    <ul>
+      <li><b>头像不显示？</b> 个人中心每次打开会实时从服务端拉取最新资料（含头像），若仍不显示请硬刷新（Ctrl+Shift+R）。</li>
+      <li><b>购买没反应？</b> 确认已登录；未登录会提示先登录。</li>
+      <li><b>钱扣了但订单还是待发货？</b> 正常，说明资金在平台托管，等待卖家发货、后台确认。</li>
+      <li><b>提现多久到账？</b> 取决于后台审批速度，请留意「订单管理 / 个人中心」状态变化。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 后端 ============ -->
+  <section class="panel" id="be">
+    <h2>后端管理手册</h2>
+    <p class="lead">面向运营 / 客服 / 财务。后台位于 <code>administerint/</code> 目录，与前端使用<strong>独立的 admin 会话</strong>。</p>
+
+    <h3>一、后台入口与登录</h3>
+    <ol>
+      <li>访问 <code>administerint/admin.html</code>（或各子页面，如 <code>dashboard.html</code>）。</li>
+      <li>使用<strong>管理员账号</strong>登录（与普通用户账号体系分离）。</li>
+    </ol>
+
+    <h3>二、功能模块总览</h3>
+    <table>
+      <tr><th>模块</th><th>页面</th><th>职责</th></tr>
+      <tr><td>仪表盘</td><td><code>dashboard.html</code></td><td>平台总览数据（用户数、商品数、营业额、充值/提现统计）</td></tr>
+      <tr><td>商品管理</td><td><code>products.html</code></td><td>查看/审核/下架/删除全平台商品</td></tr>
+      <tr><td>订单管理</td><td><code>orders.html</code></td><td><b>担保交易核心</b>：确认发货（打款）/ 驳回（退款）</td></tr>
+      <tr><td>用户管理</td><td><code>users.html</code></td><td>查看用户、封禁/解封、调整余额</td></tr>
+      <tr><td>财务管理</td><td><code>finance.html</code></td><td>充值单 / 提现单审核（通过/驳回）</td></tr>
+      <tr><td>收款账户</td><td><code>payconfig.html</code></td><td>配置平台收款账户（充值/提现用）</td></tr>
+    </table>
+
+    <h3>三、担保交易处理流程（重点）</h3>
+    <p>买家付款后，订单为 <span class="badge warn">待发货（pending）</span>，款项在平台托管。后台需人工介入：</p>
+    <div class="flow">
+      <div class="step"><b>订单 pending</b><span>买家已付款托管</span></div>
+      <div class="step"><b>确认发货</b><span>打款给卖家</span></div>
+      <div class="step"><b>状态 completed</b><span>交易完成</span></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <h4 style="margin:8px 0 4px;color:#065f46">✅ 确认发货（打款）</h4>
+        <ol>
+          <li>进入「订单管理」，找到 <span class="badge warn">待发货</span> 订单。</li>
+          <li>点「确认发货」→ 确认。</li>
+          <li>系统将托管的款项<strong>打入卖家余额</strong>，订单变为 <span class="badge ok">已完成</span>。</li>
+        </ol>
+      </div>
+      <div>
+        <h4 style="margin:8px 0 4px;color:#991b1b">⛔ 驳回（退款）</h4>
+        <ol>
+          <li>进入「订单管理」，点「驳回」→ 确认。</li>
+          <li>系统将托管款项<strong>退回买家余额</strong>，商品重新上架，订单变为 <span class="badge bad">已驳回</span>。</li>
+        </ol>
+      </div>
+    </div>
+    <div class="note danger"><b>财务安全：</b>「确认发货」会真实转移资金，请核实物流/交易真实性后再操作；驳回会退款并恢复商品上架。</div>
+
+    <h3>四、充值 / 提现审核</h3>
+    <p>前端提交的充值、提现均为待审核（<code>financial_orders</code> 表，<code>status=pending</code>）。</p>
+    <ol>
+      <li>进入「财务管理」→ 切换「充值审核 / 提现审核」。</li>
+      <li>核对金额与账户信息，点「通过」或「驳回」。</li>
+      <li><b>充值通过</b>：用户余额增加；<b>驳回</b>：不产生变动。</li>
+      <li><b>提现通过</b>：此前已冻结的余额正式扣除；<b>驳回</b>：冻结的余额退回用户。</li>
+    </ol>
+    <div class="note warn"><b>注意：</b>提现提交时余额已被冻结（扣除）。若驳回，务必退回，否则用户资产受损。</div>
+
+    <h3>五、用户与商品管理</h3>
+    <ul>
+      <li><b>用户管理：</b>可查看用户列表、封禁违规账号、必要时手动调整余额（用于补偿/纠错）。</li>
+      <li><b>商品管理：</b>审核发布内容，下架违规商品，删除垃圾信息。</li>
+      <li><b>收款账户：</b>在「收款账户」中维护平台的充值收款码 / 提现账户，前端充值页会读取展示。</li>
+    </ul>
+
+    <h3>六、日常运营 SOP（建议）</h3>
+    <ol>
+      <li>每日查看「仪表盘」掌握平台整体数据。</li>
+      <li>及时处理「订单管理」中的待发货订单（确认/驳回）。</li>
+      <li>及时审批「财务管理」中的充值 / 提现申请。</li>
+      <li>定期巡查「商品管理」「用户管理」，处置违规内容/账号。</li>
+    </ol>
+  </section>
+</div>
+
+<footer>闲置微铺 · 内部员工手册 · 前端 page/ + 后端 administerint/ + 接口 api/</footer>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      var id = t.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

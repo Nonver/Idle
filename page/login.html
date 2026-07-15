@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#13c2a3" />
+  <title>闲置微铺 - 登录</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+<div id="navbar"></div>
+
+<!-- ====== Vue 挂载点 ====== -->
+<main class="login-page" id="loginApp">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-header__logo">闲</div>
+      <h1 class="login-header__title">闲置微铺</h1>
+      <p class="login-header__sub">让闲置流动起来</p>
+    </div>
+
+    <!-- Tab 切换 -->
+    <div class="login-tabs">
+      <button :class="{ active: tab==='login' }" @click="tab='login'">登录</button>
+      <button :class="{ active: tab==='register' }" @click="switchToReg">注册</button>
+    </div>
+
+    <!-- 登录表单 -->
+    <form v-show="tab==='login'" class="login-form active" @submit.prevent="doLogin">
+      <div class="login-field">
+        <label>账号</label>
+        <input v-model="form.loginUser" type="text" placeholder="请输入账号" autocomplete="username" maxlength="50" />
+      </div>
+      <div class="login-field">
+        <label>密码</label>
+        <input v-model="form.loginPwd" type="password" placeholder="请输入密码" autocomplete="current-password" />
+      </div>
+      <div class="captcha-row">
+        <input v-model="form.loginCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
+        <canvas ref="loginCanvas" class="captcha-canvas" width="120" height="44" title="点击刷新验证码" @click="refreshLoginCaptcha"></canvas>
+      </div>
+      <button class="btn-login-submit" type="submit">{{ logging ? '登录中...' : '登 录' }}</button>
+    </form>
+
+    <!-- 注册表单 -->
+    <form v-show="tab==='register'" class="login-form" @submit.prevent="doRegister">
+      <div class="login-field">
+        <label>账号</label>
+        <input v-model="form.regUser" type="text" placeholder="设置登录账号（字母或数字）" maxlength="50" />
+      </div>
+      <div class="login-field">
+        <label>昵称</label>
+        <input v-model="form.regNick" type="text" placeholder="展示名（发布人默认用这个）" maxlength="50" />
+      </div>
+      <div class="avatar-upload">
+        <div
+          class="avatar-upload__preview"
+          :style="regAvatarBase64 ? { backgroundImage:'url('+regAvatarBase64+')', backgroundSize:'cover', backgroundPosition:'center', content:'' } : {}"
+          @click="$refs.regAvatarInput.click()"
+        >{{ regAvatarBase64 ? '' : '+' }}</div>
+        <div class="avatar-upload__info">
+          <label class="avatar-upload__btn">上传头像
+            <input ref="regAvatarInput" type="file" accept="image/*" hidden @change="onAvatarChange" />
+          </label>
+          <span class="avatar-upload__hint">选填，建议正方形图片</span>
+        </div>
+      </div>
+      <div class="login-field">
+        <label>密码</label>
+        <input v-model="form.regPwd" type="password" placeholder="设置密码（至少6位）" minlength="6" />
+      </div>
+      <div class="captcha-row">
+        <input v-model="form.regCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
+        <canvas ref="regCanvas" class="captcha-canvas" width="120" height="44" title="点击刷新验证码" @click="refreshRegCaptcha"></canvas>
+      </div>
+      <button class="btn-login-submit" type="submit">{{ registering ? '注册中...' : '注 册' }}</button>
+    </form>
+
+    <p class="login-footer">安全提示：请勿将账号借给他人使用</p>
+  </div>
+</main>
+
+<script src="../js/v3.2.8/vue.global.prod.js"></script>
+<script src="js/common.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

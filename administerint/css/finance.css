@@ -1,0 +1,319 @@
+/* finance.css — 财务管理（Vue 3 版本） */
+
+/* ---- Tab 切换 ---- */
+.ftabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.ftab {
+  padding: 10px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ftab:hover { border-color: var(--accent); color: var(--accent); }
+.ftab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ---- 统计卡 ---- */
+.fstats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.fstat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: transform .2s;
+}
+.fstat:hover { transform: translateY(-2px); }
+.fstat-label {
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.fstat-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+.fstat-value small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text3);
+  margin-left: 4px;
+}
+.fstat-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+/* 卡片颜色 */
+.fstat-warn { border-left: 4px solid #f59e0b; }
+.fstat-warn .fstat-value { color: #f59e0b; }
+.fstat-ok { border-left: 4px solid #10b981; }
+.fstat-ok .fstat-value { color: #10b981; }
+.fstat-err { border-left: 4px solid #ef4444; }
+.fstat-err .fstat-value { color: #ef4444; }
+.fstat-info { border-left: 4px solid #3b82f6; }
+.fstat-info .fstat-value { color: #3b82f6; }
+
+/* ---- 筛选栏 ---- */
+.status-select {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+.status-select:focus { border-color: var(--accent); }
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.filter-badge i {
+  cursor: pointer;
+  font-style: normal;
+  font-weight: bold;
+  opacity: .8;
+}
+.filter-badge i:hover { opacity: 1; }
+
+/* ---- 表格 ---- */
+.amt {
+  font-weight: 600;
+  color: var(--text);
+}
+.amt-actual {
+  color: #10b981;
+}
+.ftype {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.ftype-recharge {
+  background: #dbeafe;
+  color: #2563eb;
+}
+.ftype-withdraw {
+  background: #fef3c7;
+  color: #d97706;
+}
+.fstatus {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.fs-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.fs-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+.fs-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.acts {
+  white-space: nowrap;
+}
+.fdone {
+  font-size: 12px;
+  color: var(--muted);
+}
+/* 按钮 */
+.btn-success {
+  background: #10b981;
+  color: #fff;
+  border-color: #10b981;
+}
+.btn-success:hover { background: #059669; }
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+.btn-danger:hover { background: #dc2626; }
+.btn-sm {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+.btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* ---- 空状态 ---- */
+.fempty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.panel-foot {
+  text-align: center;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+
+/* ====== 审核弹窗（Vue Transition） ====== */
+.fmodal-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, .5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.fmodal {
+  width: 420px;
+  max-width: 92vw;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,.35);
+  overflow: hidden;
+  animation: fmodalIn .22s ease-out;
+}
+@keyframes fmodalIn {
+  from { opacity: 0; transform: scale(.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.fmodal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: #fff;
+}
+.fmodal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.fmodal-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.7);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.fmodal-close:hover { color: #fff; }
+.fmodal-body {
+  padding: 20px;
+}
+.ffield {
+  margin-bottom: 14px;
+}
+.ffield label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+.ffield label em {
+  font-weight: 400;
+  color: var(--muted);
+  font-style: normal;
+  font-size: 12px;
+}
+.ffval {
+  font-size: 15px;
+  color: var(--text);
+  padding: 6px 0;
+}
+.ffval.amt {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 18px;
+}
+.finp {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color .2s;
+}
+.finp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+.fftip {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.fmodal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* Vue Transition */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity .2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 768px) {
+  .fstats { grid-template-columns: 1fr 1fr; }
+  .fstat-value { font-size: 20px; }
+  .ftabs { margin-bottom: 12px; }
+  .ftab { padding: 8px 18px; font-size: 13px; }
+  .fmodal { width: 94vw; margin: 0 3vw; }
+}

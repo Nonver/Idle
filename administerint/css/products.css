@@ -1,0 +1,4 @@
+/* products.css — 商品管理页（布局/表格复用 shared.css） */
+.col-price{font-variant-numeric:tabular-nums;font-weight:600;color:var(--danger)}
+.thumb{transition:opacity .15s;cursor:pointer;border-radius:6px}
+.thumb:hover{opacity:.75}

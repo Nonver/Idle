@@ -1,0 +1,150 @@
+/* ============ 登录 / 注册页 ============ */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #e8f5f3 0%, #f0f4ff 50%, #fef6ee 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
+  overflow: hidden;
+}
+
+.login-header {
+  text-align: center;
+  padding: 32px 26px 16px;
+}
+.login-header__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), #36d1dc);
+  color: #fff;
+  font-size: 26px; font-weight: 900;
+  margin-bottom: 14px;
+}
+.login-header__title {
+  font-size: 22px; font-weight: 800; color: var(--text); margin: 0 0 4px;
+}
+.login-header__sub {
+  font-size: 13px; color: var(--text-soft); margin: 0;
+}
+
+/* Tab 切换 */
+.login-tabs {
+  display: flex; gap: 8px; padding: 0 22px; margin-bottom: 4px;
+}
+.login-tabs button {
+  flex: 1; border: none; background: #f1f2f4; padding: 11px; border-radius: 10px;
+  font-weight: 700; font-size: 15px; color: var(--text-soft); cursor: pointer;
+  transition: all .2s;
+}
+.login-tabs button.active {
+  background: var(--primary); color: #fff;
+  box-shadow: 0 4px 14px rgba(19,194,163,.35);
+}
+
+/* 表单 */
+.login-form { display: none; padding: 8px 22px 28px; }
+.login-form.active { display: block; }
+
+.login-field {
+  margin-bottom: 14px;
+}
+.login-field label {
+  display: block; font-size: 13px; font-weight: 700; color: var(--text-soft);
+  margin-bottom: 5px;
+}
+.login-field input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 15px; color: var(--text);
+  background: #fafbfc; transition: border-color .2s;
+  box-sizing: border-box;
+}
+.login-field input:focus {
+  outline: none; border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(19,194,163,.1);
+}
+
+/* 头像上传 */
+.avatar-upload {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+}
+.avatar-upload__preview {
+  width: 56px; height: 56px; border-radius: 50%; flex: none;
+  background: #f0f2f5 center/cover no-repeat;
+  border: 2px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--text-soft); cursor: pointer;
+}
+.avatar-upload__info { display: flex; flex-direction: column; gap: 4px; }
+.avatar-upload__btn {
+  display: inline-block; padding: 7px 14px; border-radius: 8px;
+  background: var(--primary); color: #fff; font-size: 13px; font-weight: 700;
+  cursor: pointer; width: fit-content;
+}
+.avatar-upload__hint { font-size: 12px; color: var(--text-soft); }
+
+/* 验证码行 */
+.captcha-row {
+  display: flex; gap: 10px; align-items: center; margin-bottom: 18px;
+}
+.captcha-row input {
+  flex: 1; padding: 12px 14px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 15px; background: #fafbfc;
+  box-sizing: border-box;
+}
+.captcha-row input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(19,194,163,.1);
+}
+.captcha-canvas {
+  flex: none; width: 110px; height: 42px; border-radius: 8px;
+  border: 1.5px solid var(--border); cursor: pointer;
+  background: #f0f2f5; display: block; transition: border-color .2s;
+}
+.captcha-canvas:hover { border-color: var(--primary); }
+
+/* 提交按钮 */
+.btn-login-submit {
+  width: 100%; padding: 13px; border: none; border-radius: 11px;
+  background: linear-gradient(135deg, var(--primary), #36d1dc);
+  color: #fff; font-size: 16px; font-weight: 800;
+  cursor: pointer; letter-spacing: 2px;
+  box-shadow: 0 4px 16px rgba(19,194,163,.3);
+  transition: transform .1s, box-shadow .2s;
+}
+.btn-login-submit:active {
+  transform: scale(.98); box-shadow: 0 2px 8px rgba(19,194,163,.25);
+}
+
+/* 底部提示 */
+.login-footer {
+  text-align: center; padding: 0 22px 24px; font-size: 12px; color: var(--text-soft);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .login-page {
+    min-height: auto; padding: 16px 12px;
+    /* 已登录态不需要撑满屏；未登录时在内容区居中即可 */
+    align-items: flex-start;
+    padding-top: 30px;
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 20px);
+  }
+  .login-card { border-radius: 14px; }
+  .login-header { padding: 24px 18px 12px; }
+  .login-tabs { padding: 0 16px; }
+  .login-form { padding: 6px 16px 22px; }
+  .login-footer { padding: 0 16px 20px; }
+}

@@ -1,0 +1,108 @@
+/* ============ 充值页（专业版） ============ */
+.rc-container{max-width:520px;padding:16px 0 32px}
+
+/* 余额卡片 */
+.rc-balance-card{
+  background:linear-gradient(135deg,#1e293b,#334155);
+  color:#fff;
+  padding:24px 22px;border-radius:var(--radius);
+  margin-bottom:18px;position:relative;overflow:hidden
+}
+.rc-balance-card::after{
+  content:'';position:absolute;top:-30px;right:-20px;width:120px;height:120px;
+  border-radius:50%;background:rgba(59,130,246,.15)
+}
+.rc-balance-label{font-size:13px;color:#94a3b8;margin-bottom:6px}
+.rc-balance-num{font-size:32px;font-weight:700;letter-spacing:.5px}
+
+/* 卡片通用 */
+.rc-card{
+  background:var(--surface);border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:14px;
+  box-shadow:var(--shadow)
+}
+.rc-section-title{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--text)}
+
+/* 金额输入 */
+.rc-amount-input-wrap{
+  display:flex;align-items:center;background:#f8fafc;
+  border:2px solid var(--border);border-radius:var(--radius-sm);
+  padding:0 4px 0 16px;transition:border-color .2s
+}
+.rc-amount-input-wrap:focus-within{border-color:#2563eb}
+.rc-currency{font-size:22px;font-weight:600;color:var(--text-soft);margin-right:4px;line-height:1}
+.rc-amount-input{
+  flex:1;height:48px;border:none;background:none;
+  font-size:22px;font-weight:600;color:var(--text);outline:none;
+  -moz-appearance:textfield
+}
+.rc-amount-input::-webkit-inner-spin-button,
+.rc-amount-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+/* 快捷金额 */
+.rc-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.rc-quick button{
+  height:42px;border:1.5px solid var(--border);border-radius:10px;
+  background:#fff;font-size:14px;font-weight:500;color:var(--text);
+  cursor:pointer;transition:.15s
+}
+.rc-quick button:hover{border-color:#2563eb;color:#2563eb}
+.rc-quick button.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:600}
+
+/* 收款账户列表 */
+.rc-hint{font-size:12px;color:var(--text-soft);margin:0 0 14px;line-height:1.5}
+.rc-account-item{
+  border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;
+  transition:border-color .2s;position:relative
+}
+.rc-account-item:hover{border-color:#93c5fd}
+.rc-acct-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rc-acct-name{font-size:14px;font-weight:600;color:var(--text)}
+.rc-acct-channel{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:6px;font-size:12px;font-weight:500;
+  background:#e0f2fe;color:#0369a1
+}
+.rc-acct-no-wrap{display:flex;align-items:center;gap:8px}
+.rc-acct-no{
+  flex:1;font-size:15px;font-weight:600;color:#1e293b;
+  letter-spacing:.5px;font-family:"SF Mono",Menlo,Consolas,monospace;
+  padding:8px 12px;background:#f8fafc;border-radius:8px;cursor:pointer;
+  user-select:all;transition:background .2s
+}
+.rc-acct-no:hover{background:#e2e8f0}
+.rc-copy-btn{
+  height:36px;padding:0 14px;border-radius:9px;border:1.5px solid #dbeafe;
+  background:#fff;color:#2563eb;font-size:13px;font-weight:500;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s
+}
+.rc-copy-btn:hover{background:#eff6ff;border-color:#2563eb}
+.rc-acct-qrcode{margin-top:10px;text-align:center;display:none}
+.rc-acct-qrcode img{max-width:160px;height:auto;border-radius:10px;border:1px solid var(--border)}
+.rc-qrcode-toggle{font-size:12px;color:#2563eb;cursor:pointer;margin-top:8px;display:inline-block}
+
+/* 提交按钮 */
+.rc-submit{
+  width:100%;height:50px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.3);
+  transition:.2s;margin-bottom:12px
+}
+.rc-submit:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af);transform:translateY(-1px)}
+.rc-submit:active{transform:translateY(0)}
+.rc-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.rc-back{display:block;text-align:center;color:var(--text-soft);font-size:13px;padding:8px 0}
+
+/* 空状态 */
+.rc-empty{text-align:center;padding:32px 0;color:var(--text-soft);font-size:14px}
+.rc-empty strong{color:var(--text)}
+
+@media (max-width:768px){
+  .rc-container{padding:8px 0 28px}
+  .rc-card{padding:16px 18px;margin-bottom:12px}
+  .rc-balance-card{margin-bottom:14px;padding:20px 18px}
+  .rc-balance-num{font-size:28px}
+  .rc-amount-input{font-size:19px}
+  .rc-section-title{margin-bottom:12px}
+}

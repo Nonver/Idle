@@ -1,0 +1,4 @@
+# 禁止执行 uploads 目录下的任何脚本，仅作静态资源目录
+<Files *.php>
+    Deny from all
+</Files>

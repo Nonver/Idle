@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#13c2a3" />
+  <title>闲置微铺 - 首页</title>
+  <link rel="stylesheet" href="page/css/common.css" />
+  <link rel="stylesheet" href="page/css/home.css" />
+</head>
+<body>
+<div id="navbar"></div>
+
+<!-- ====== Vue 挂载点 ====== -->
+<main class="container" id="homeApp">
+
+  <!-- 轮播图 -->
+  <section class="hero">
+    <div class="carousel">
+      <div
+        class="carousel__track"
+        :style="{ transform: 'translateX(' + (-100 * curSlide) + '%)' }"
+      >
+        <div
+          v-for="(s,idx) in slides"
+          :key="idx"
+          class="carousel__slide"
+          :style="{ background: 'linear-gradient(135deg,' + s.c1 + ',' + s.c2 + ')' }"
+        >
+          <span class="tag">{{ s.tag }}</span>
+          <div style="text-align:center"><h3>{{ s.title }}</h3><p>{{ s.desc }}</p></div>
+        </div>
+      </div>
+      <button class="carousel__arrow prev" @click="go((curSlide - 1 + slides.length) % slides.length)">&lsaquo;</button>
+      <button class="carousel__arrow next" @click="go((curSlide + 1) % slides.length)">&rsaquo;</button>
+      <div class="carousel__dots">
+        <span
+          v-for="(_,idx) in slides"
+          :key="'d'+idx"
+          :class="{ active: idx === curSlide }"
+          @click="go(idx)"
+        ></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 商品区 -->
+  <section class="products">
+    <h2 class="section-title">闲置好物</h2>
+    <template v-if="productList.length > 0">
+      <div class="product-grid">
+        <div v-for="p in productList" :key="p.id" class="product-card">
+          <img class="product-card__img" :src="imgUrl(p.img)" :alt="p.title" @click="zoomImg(p.img)" />
+          <div class="product-card__body">
+            <p class="product-card__title">{{ p.title }}</p>
+            <div class="product-card__publisher">发布人：<b>{{ p.publisher }}</b></div>
+            <div class="product-card__foot">
+              <span class="price product-card__price">&yen;{{ p.price }}</span>
+              <button class="buy-btn" @click="buy(p)">购买</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+    <div v-else class="empty" style="grid-column:1/-1;padding:40px;text-align:center;color:#999;">
+      <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg><br/>暂无闲置商品，去「管理」发布吧
+    </div>
+  </section>
+
+  <!-- 购买弹窗（必须在 #homeApp 内，Vue 才能管理 v-if / @click） -->
+  <transition name="modal-fade">
+    <div v-if="showBuyModal" class="modal-mask" @click.self="showBuyModal=false">
+      <div class="modal-card">
+        <div class="modal-head"><h3>确认购买</h3><button @click="showBuyModal=false">&times;</button></div>
+        <div class="modal-body" style="text-align:center">
+          <img v-if="buyProduct" :src="imgUrl(buyProduct.img)" style="width:120px;border-radius:10px;margin:0 auto 12px;display:block;cursor:pointer" @click="zoomImg(buyProduct.img)" />
+          <div v-if="buyProduct" style="font-weight:700;font-size:15px">{{ buyProduct.title }}</div>
+          <div v-if="buyProduct" class="price" style="font-size:22px;margin-top:6px">&yen;{{ buyProduct.price }}</div>
+          <div v-if="buyProduct" style="margin-top:6px;color:#999">发布人：{{ buyProduct.publisher }}</div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" @click="showBuyModal=false">取消</button>
+          <button class="btn btn-primary" :disabled="buying" @click="confirmBuy">{{ buying ? '支付中...' : '确认支付' }}</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+</main>
+
+<div id="footer"></div>
+
+<script src="js/v3.2.8/vue.global.prod.js"></script>
+<script src="page/js/common.js"></script>
+<script src="page/js/home.js"></script>
+</body>
+</html>
