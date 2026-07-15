@@ -174,7 +174,92 @@
   cursor: not-allowed;
 }
 
-/* ---- 空状态 ---- */
+/* ---- 收款方式列 ---- */
+.pay-info-cell {
+  min-width: 140px;
+  vertical-align: top;
+}
+.pay-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 1.6;
+}
+.pay-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.pay-tag--alipay {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.pay-tag--qrcode {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+.pay-detail {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--text2);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.pay-detail--qr {
+  cursor: pointer;
+  color: #7c3aed;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pay-detail--qr:hover { opacity: .75; }
+.pay-detail--remark {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  max-width: 120px;
+  margin-top: 2px;
+}
+.pay-detail--remark-inline {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 3px;
+  padding: 2px 6px;
+  background: #f9fafb;
+  border-radius: 4px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pay-detail--none {
+  font-size: 11px;
+  color: #d1d5db;
+}
+
+/* 弹窗内收款方式详情 */
+.pay-info-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fmodal-qr {
+  max-width: 180px;
+  max-height: 180px;
+  border-radius: 10px;
+  cursor: zoom-in;
+  transition: transform .15s;
+  object-fit: contain;
+}
+.fmodal-qr:hover { transform: scale(1.05); }
 .fempty {
   text-align: center;
   padding: 40px 16px;

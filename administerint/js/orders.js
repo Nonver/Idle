@@ -1,11 +1,13 @@
 /* orders.js — 订单管理（Vue 3） */
 (function(){
   'use strict';
+  if (typeof Vue === 'undefined') { console.error('[xzwp-admin] Vue 未加载'); return; }
+  if (typeof window.Admin === 'undefined') { console.error('[xzwp-admin] shared.js 未正确加载'); return; }
   var A = window.Admin;
 
   var app = Vue.createApp({
     data: function(){
-      return { loading: false, list: [], busy: 0 };
+      return { loading: false, list: [], busy: 0, showShip: false, shipOrder: null, shipAmount: 0, shipping: false };
     },
     mounted: function(){ this.load(); },
     methods: {
@@ -26,16 +28,25 @@
       statusClass: function(s){
         return ({ pending:'badge--warn', completed:'badge--ok', rejected:'badge--off' })[s] || 'badge--off';
       },
-      ship: function(o){
+      openShip: function(o){
+        this.shipOrder = o;
+        this.shipAmount = Number(o.price || 0);
+        this.showShip = true;
+      },
+      confirmShip: function(){
         var self = this;
-        A.confirm({ title:'确认发货', message:'确认向发布人「'+o.publisher+'」打款 ¥'+Number(o.price).toFixed(2)+'？\n打款后订单结束，操作不可撤销。', okText:'确认发货', danger:false }).then(function(okd){
-          if (!okd) return;
-          self.busy = o.id;
-          A.req('admin.php?act=orders&op=ship&id='+o.id).then(function(r){
-            self.busy = 0;
-            if (A.ok(r)) { A.toast(r.msg||'已发货','ok'); o.status='completed'; }
-            else { A.toast(r.msg||'失败','err'); }
-          });
+        var amt = Number(self.shipAmount);
+        if (isNaN(amt) || amt < 0) { A.toast('请输入有效的打款金额', 'err'); return; }
+        if (!self.shipOrder) return;
+        self.shipping = true;
+        A.req('admin.php?act=orders&op=ship&id=' + self.shipOrder.id + '&amount=' + encodeURIComponent(amt)).then(function(r){
+          self.shipping = false;
+          if (A.ok(r)) {
+            A.toast(r.msg || '已打款', 'ok');
+            self.shipOrder.status = 'completed';
+            self.shipOrder.actual_paid = amt;
+            self.showShip = false;
+          } else { A.toast(r.msg || '失败', 'err'); }
         });
       },
       reject: function(o){

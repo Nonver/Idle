@@ -1,6 +1,8 @@
 /* dashboard.js — 仪表盘（Vue 3） */
 (function(){
   'use strict';
+  if (typeof Vue === 'undefined') { console.error('[xzwp-admin] Vue 未加载'); return; }
+  if (typeof window.Admin === 'undefined') { console.error('[xzwp-admin] shared.js 未正确加载'); return; }
   var A = window.Admin;
 
   function fmt(n){ return (Number(n||0)).toFixed(2); }

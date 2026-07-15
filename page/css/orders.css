@@ -72,6 +72,7 @@
 .badge--bad   { background: #fff1f0; color: #cf1322; }     /* 已驳回 - 红 */
 
 .order-refund-hint { font-size: 12px; color: #389e0d; }
+.order-paid-hint { font-size: 12px; color: #13c2a3; font-weight: 600; }
 
 /* 空状态 / 加载 */
 .empty-state {

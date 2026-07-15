@@ -122,8 +122,8 @@ table.list tbody tr:hover{background:#f8fafc}
   .topbar{padding:0 16px;height:54px}
   .topbar-right .top-admin{display:none}
   .page-body{padding:16px;padding-bottom:78px}
-  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
-  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;color:var(--muted);font-size:11px}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);z-index:30;padding-bottom:env(safe-area-inset-bottom);overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab{flex:0 0 auto;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;color:var(--muted);font-size:11px}
   .tab svg{width:21px;height:21px}
   .tab.active{color:var(--accent)}
   .search input{width:140px}

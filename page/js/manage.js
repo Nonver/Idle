@@ -1,72 +1,170 @@
-/* manage.js — 管理页（Vue 3） */
+/* manage.js — 管理页（Vue 3） v20260715c */
+console.log('[xzwp] manage.js v20260715c start');
 (function(){
   'use strict';
-  var App=window.App, API=App.API, toast=App.toast;
-  if(!App.requireLogin()) return;
 
-  var me = API.getUser();
+  if (typeof Vue === 'undefined') { console.error('[xzwp] Vue 未加载'); return; }
+  if (typeof window === 'undefined' || !window.App) { console.error('[xzwp] App 缺失'); return; }
 
-  var app=Vue.createApp({
-    data:function(){
-      return{
-        tab:'publish',
-        publishing:false,
-        imgData:'',
-        imgHint:'点击上传商品图',
-        form:{title:'',price:null},
-        me:me||{},
-        myList:[]
-      };
-    },
-    mounted:function(){
-      App.renderNav('manage.html');
-      App.renderFooter();
-    },
-    methods:{
-      imgUrl:function(path){ return App.img(path); },
-      zoomImg:function(path){ App.lightbox(App.img(path)); },
-      switchTab:function(t){
-        this.tab=t;
-        if(t==='mine') this.loadMine();
+  var App = window.App, API, toast;
+  try { API = App.API; toast = App.toast; } catch(e) { console.error('[xzwp] API读取失败:',e); return; }
+  if (!API) return;
+  if (!toast) toast = function(m){ console.warn('[toast]',m); };
+
+  /* 用户信息（安全降级） */
+  var _u = {};
+  try { var tmp = API.getUser && API.getUser(); if(tmp&&typeof tmp==='object') _u=tmp; } catch(e){}
+
+  /* 登录检查（不阻断渲染） */
+  try { if(App.requireLogin) App.requireLogin(); } catch(e){ console.warn('[xzwp] login跳过:',e); }
+
+  var app;
+  try {
+    app = Vue.createApp({
+      data: function(){
+        return {
+          tab: 'publish',
+          publishing: false,
+          imgData: '',
+          imgHint: '点击上传商品图',
+          form: { title: '', price: '' },   /* 全部用字符串，避免 null/number 问题 */
+          nick: (_u.nickname||''),
+          bal: Number(_u.balance)||0,
+          list: [],       /* 原始数组 */
+          ok: false        /* mounted 标记 */
+        };
       },
-      onImgChange:function(e){
-        var f=e.target.files&&e.target.files[0]; if(!f)return;
-        var r=new FileReader();
-        r.onload=function(ev){ this.imgData=ev.target.result; }.bind(this);
-        r.readAsDataURL(f);
+
+      computed: {
+        bTxt: function(){ return this.bal.toFixed(2); },
+        btnTxt: function(){ return this.publishing ? '发布中...' : '发布商品'; },
+        showMine: function(){ return this.tab==='mine'; },
+        showPub: function(){ return this.tab==='publish'; },
+        hasList: function(){
+          try { return Array.isArray(this.list)&&this.list.length>0; } catch(e){ return false; }
+        }
       },
-      doPublish:function(){
-        var self=this, f=self.form;
-        if(!f.title.trim()){toast('请填写商品标题','err');return;}
-        if(!(f.price>=0)||isNaN(f.price)){toast('请填写有效价格','err');return;}
-        if(!self.imgData){toast('请上传商品图片','err');return;}
-        self.publishing=true;
-        API.createProduct({title:f.title.trim(),price:f.price,publisher:self.me.nickname,img:self.imgData,desc:f.title.trim()}).then(function(){
-          toast('发布成功','ok');
-          f.title=''; f.price=null; self.imgData='';
-          self.publishing=false; App.renderNav('manage.html');
-        });
+
+      mounted: function(){
+        this.ok = true;
+        try{ if(App.renderNav) App.renderNav('manage.html'); }catch(e){}
+        try{ if(App.renderFooter) App.renderFooter(); }catch(e){}
       },
-      loadMine:function(){
-        var self=this;
-        API.getMyProducts(self.me.nickname).then(function(list){
-          self.myList=list||[];
-        });
-      },
-      toggleProd:function(p){
-        var self=this, next=p.status==='on'?'off':'on';
-        API.updateProduct(p.id,{status:next}).then(function(){
-          toast(next==='on'?'已上架':'已下架','ok'); self.loadMine(); App.renderNav('manage.html');
-        });
-      },
-      delProd:function(p){
-        var self=this;
-        App.confirm({ title:'删除商品', message:'确定删除该商品？此操作不可恢复。', okText:'删除', danger:true }).then(function(okd){
-          if(!okd)return;
-          API.deleteProduct(p.id).then(function(){toast('已删除','ok');self.loadMine();App.renderNav('manage.html');});
-        });
+
+      methods: {
+        /* ========== 纯数据访问方法（全部 try-catch） ========== */
+        gS: function(p){ try{ return p&&(typeof p==='object')?(p.status||'off'):'off'; }catch(e){return'off';} },
+        gT: function(p){ try{ return p&&(typeof p==='object')?(p.title||''):''; }catch(e){return'';} },
+        gP: function(p){ try{ var n=p&&(typeof p==='object')?Number(p.price):0; return isNaN(n)?0:n; }catch(e){return 0;} },
+        gD: function(p){ try{ var n=p&&(typeof p==='object')?Number(p.deposit):0; return isNaN(n)?0:n; }catch(e){return 0;} },
+        gPub: function(p){ try{ return p&&(typeof p==='object')?(p.publisher||''):''; }catch(e){return'';} },
+        gId: function(p){ try{ return p&&(typeof p==='object')?p.id:null; }catch(e){return null;} },
+        gImg: function(p){
+          try{
+            if(!p||typeof p!=='object') return '';
+            var raw = p.img||'';
+            if(!raw) return '';
+            return (App.img&&App.img(raw))||'';
+          }catch(e){ return ''; }
+        },
+
+        isOn: function(p){ return this.gS(p)==='on'; },
+        isSold: function(p){ return this.gS(p)==='sold'; },
+        sLabel: function(p){ var s=this.gS(p); return s==='on'?'在售':s==='sold'?'已售出':'已下架'; },
+        sCls: function(p){ var s=this.gS(p); return s==='on'?'badge--on':s==='sold'?'badge--sold':'badge--off'; },
+        hasDep: function(p){ return this.gD(p)>0; },
+
+        /* ========== 操作方法 ========== */
+        swTab: function(t){ this.tab=t; if(t==='mine') this.doLoad(); },
+
+        onImg: function(e){
+          var f=e.target.files&&e.target.files[0]; if(!f)return;
+          var self=this,r=new FileReader();
+          r.onload=function(){ try{ self.imgData=r.result||''; }catch(e2){} };
+          r.readAsDataURL(f);
+        },
+
+        doPub: function(){
+          var self=this,f=self.form;
+          if(!(f.title&&f.title.trim())){ toast('请填写标题','err'); return; }
+          var pr=parseFloat(f.price);
+          if(isNaN(pr)||pr<0){ toast('价格无效','err'); return; }
+          if(!self.imgData){ toast('请上传图片','err'); return; }
+          self.publishing=true;
+          API.createProduct({title:f.title.trim(),price:pr,deposit:0,publisher:self.nick,img:self.imgData,desc:f.title.trim()})
+            .then(function(r){
+              self.publishing=false;
+              if(r&&r.code===0){
+                toast('发布成功','ok');
+                f.title='';f.price='';f.deposit='';self.imgData='';
+                self.refMe(); self.doLoad();
+                try{if(App.renderNav)App.renderNav('manage.html');}catch(e4){}
+              }else{ toast((r&&r.msg)||'失败','err'); }
+            })
+            .catch(function(err){ self.publishing=false; console.error(err); toast('请求失败','err'); });
+        },
+
+        refMe: function(){
+          try{ var u=(API.getUser&&API.getUser())||{}; if(u&&typeof u==='object'){ this.nick=u.nickname||''; this.bal=Number(u.balance)||0;} }catch(e){}
+        },
+
+        doLoad: function(){
+          var self=this,n=self.nick;
+          if(!n){ self.list=[]; return; }
+          API.getMyProducts(n)
+            .then(function(d){
+              try{
+                var arr=Array.isArray(d)?d:[];
+                arr=arr.filter(function(x){ return x&&typeof x==='object'&&x.id!=null; });
+                self.list=arr;
+              }catch(e){ self.list=[]; }
+            })
+            .catch(function(e){ console.warn(e); self.list=[]; });
+        },
+
+        doToggle: function(p){
+          var id=this.gId(p); if(id==null)return;
+          var nx=this.isOn(p)?'off':'on',self=this;
+          API.updateProduct(id,{status:nx})
+            .then(function(r){
+              if(r&&r.code===0){ toast(nx==='on'?'已上架':'已下架','ok'); self.refMe();self.doLoad(); try{if(App.renderNav)App.renderNav('manage.html');}catch(e){} }
+              else{ toast((r&&r.msg)||'操作失败','err');}
+            })
+            .catch(function(e){ console.error(e); toast('操作失败','err'); });
+        },
+
+        doDel: function(p){
+          var id=this.gId(p); if(id==null)return;
+          var self=this,go=function(){
+            API.deleteProduct(id).then(function(r){
+              if(r&&r.code===0){ toast('已删除','ok'); self.refMe();self.doLoad(); try{if(App.renderNav)App.renderNav('manage.html');}catch(e){} }
+              else{ toast((r&&r.msg)||'删除失败','err');}
+            }).catch(function(e){ console.error(e); toast('删除失败','err'); });
+          };
+          var c=App.confirm;
+          if(c&&typeof c==='function'){ c.call(App,{title:'删除',message:'确定删除？不可恢复。',okText:'删除',danger:true}).then(function(y){if(y)go();}); }
+          else{ if(confirm('确定删除？')) go(); }
+        },
+
+        zoom: function(p){ try{ this.gImg(p)&&(App.lightbox&&App.lightbox(this.gImg(p))); }catch(e){} },
+        imgSrc: function(p){ return this.gImg(p); }
       }
-    }
-  });
-  app.mount('#manageApp');
+    });
+
+    app.config.errorHandler = function(err,vm,info){
+      console.error('[xzwp] 渲染异常:', info, err.message||err);
+    };
+  } catch(e) {
+    console.error('[xzwp] createApp失败:', e); return;
+  }
+
+  try {
+    app.mount('#manageApp');
+    console.log('[xzwp] manage mount OK v20260715c');
+  } catch(e) {
+    console.error('[xzwp] mount失败:', e);
+    var el=document.getElementById('manageApp');
+    if(el) el.innerHTML='<div style="padding:30px;text-align:center;color:#999"><p>加载异常</p><button onclick="location.reload()" style="padding:8px24px;background:#13c2a3;color:#fff;border:none;border-radius:9px">刷新</button></div>';
+  }
 })();
+console.log('[xzwp] manage.js v20260715c loaded');

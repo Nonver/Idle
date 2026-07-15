@@ -53,6 +53,7 @@
         </div>
         <div class="order-card__foot">
           <span class="order-card__price">&yen;{{ o.price }}</span>
+          <span v-if="o.status==='completed' && o.actual_paid" class="order-paid-hint">已打款 ¥{{ o.actual_paid }}</span>
           <span v-if="o.status==='rejected'" class="order-refund-hint">已退回余额</span>
         </div>
       </div>

@@ -1,6 +1,8 @@
 /* recharge.js — 充值页（Vue 3） */
 (function(){
   'use strict';
+  if (typeof Vue === 'undefined') { console.error('[xzwp] Vue 未加载'); return; }
+  if (typeof window.App === 'undefined') { console.error('[xzwp] common.js 未正确加载'); return; }
   var App = window.App;
   if(!App.requireLogin()) return;
   var API = App.API;
@@ -63,5 +65,5 @@
       }
     }
   });
-  app.mount('#rcApp');
+  try { app.mount('#rcApp'); } catch (e) { console.error('[xzwp] recharge Vue mount 失败:', e); }
 })();

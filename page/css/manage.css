@@ -35,7 +35,16 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .my-item__meta { color: var(--text-soft); font-size: 13px; margin-bottom: 4px; }
 .my-item__price { color: var(--accent); font-weight: 800; font-size: 16px; }
+.my-item__deposit { color: var(--text-soft); font-weight: 600; font-size: 12px; margin-left: 4px; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-top: 4px; }
 .badge--on { background: var(--primary-soft); color: var(--primary-dark); }
 .badge--off { background: #f1f2f4; color: var(--text-soft); }
+.badge--sold { background: #fff4e5; color: #d97706; }
 .my-item__ops { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+
+/* 发布页余额提示 */
+.publish-balance {
+  margin: 4px 0 16px; padding: 10px 14px; border-radius: 10px;
+  background: var(--primary-soft); color: var(--text); font-size: 14px;
+}
+.publish-balance b { color: var(--primary-dark); font-size: 16px; }

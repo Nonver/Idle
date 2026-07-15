@@ -35,6 +35,20 @@
 .carousel__arrow.prev { left: 14px; }
 .carousel__arrow.next { right: 14px; }
 
+/* 图片轮播（后台上传的轮播图） */
+.carousel__slide .slide-link { display: block; width: 100%; height: 100%; }
+.carousel__slide .slide-img { width: 100%; height: 100%; object-fit: cover; display: block; background: #eef1f5; }
+.carousel__slide .slide-caption {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 22px 36px;
+  background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)); color: #fff; text-align: left;
+}
+.carousel__slide .slide-caption h3 { font-size: 22px; margin: 0 0 4px; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+.carousel__slide .slide-caption p { margin: 0; opacity: .95; font-size: 14px; }
+.carousel__slide .slide-caption .tag {
+  position: static; display: inline-block; margin-bottom: 8px;
+  background: rgba(255,255,255,.25); padding: 3px 12px; border-radius: 999px; font-size: 12px; backdrop-filter: blur(4px);
+}
+
 /* 商品网格 */
 .product-grid {
   display: grid; gap: 18px;
@@ -62,6 +76,7 @@
 .product-card__price { font-size: 19px; }
 .buy-btn { padding: 7px 16px; border-radius: 999px; border: none; background: var(--accent); color: #fff; font-weight: 700; }
 .buy-btn:hover { filter: brightness(.95); }
+.buy-btn--own { background: #c9cdd4; color: #fff; cursor: not-allowed; filter: none; }
 
 /* 购买确认弹窗 — Vue transition 控制，覆盖 .modal-mask{display:none} */
 .modal-fade-enter-active,.modal-fade-leave-active { transition: opacity .25s; }

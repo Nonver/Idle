@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `id`          INT          NOT NULL AUTO_INCREMENT,
   `title`       VARCHAR(120) NOT NULL,
   `price`       DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `deposit`     DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '押金（可选，随订单金额一起打款给发布人）',
   `publisher`   VARCHAR(50)  NOT NULL,
   `img`         VARCHAR(255) NOT NULL DEFAULT '',
   `description` TEXT,
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `product_id` INT          NOT NULL,
   `title`      VARCHAR(120) NOT NULL,
   `price`      DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `actual_paid` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '实际打款金额（后台确认发货时填写，操作不可逆）',
   `publisher`  VARCHAR(50)  NOT NULL,
   `buyer`      VARCHAR(50)  NOT NULL,
   `created_at` INT          NOT NULL DEFAULT 0,
@@ -69,9 +71,48 @@ CREATE TABLE IF NOT EXISTS `financial_orders` (
   `created_at`  INT           NOT NULL DEFAULT 0,
   `reviewed_at` INT           NOT NULL DEFAULT 0 COMMENT '审核时间',
   `reviewer_id` INT           NOT NULL DEFAULT 0 COMMENT '审核人管理员ID',
+  `pay_method`  VARCHAR(20)   NOT NULL DEFAULT '' COMMENT '收款方式：alipay=支付宝账号,qrcode=收款码',
+  `pay_info`    TEXT          NOT NULL COMMENT '收款信息（JSON: {account, qrcode_base64, remark}）',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_type` (`type`),
   KEY `idx_status` (`status`),
   KEY `idx_type_status` (`type`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `banners` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `img`        VARCHAR(255) NOT NULL DEFAULT '' COMMENT '轮播图路径',
+  `link`       VARCHAR(255) NOT NULL DEFAULT '' COMMENT '点击跳转链接',
+  `title`      VARCHAR(120) NOT NULL DEFAULT '' COMMENT '展示标题（可选）',
+  `sort_order` INT          NOT NULL DEFAULT 0 COMMENT '排序，越小越靠前',
+  `status`     TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '0=禁用,1=启用',
+  `created_at` INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+/* 系统配置（单行表，id 固定为 1） */
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id`          TINYINT      NOT NULL DEFAULT 1,
+  `site_title`  VARCHAR(80)  NOT NULL DEFAULT '闲置微铺' COMMENT '站点标题',
+  `site_icon`   VARCHAR(512) NOT NULL DEFAULT '' COMMENT '站点图标（data:image 或 uploads/ 路径）',
+  `contact`     VARCHAR(255) NOT NULL DEFAULT '' COMMENT '客服联系方式',
+  `updated_at`  INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `settings` (`id`, `site_title`, `updated_at`) VALUES (1, '闲置微铺', 0)
+  ON DUPLICATE KEY UPDATE `id` = 1;
+
+/* ---- 兼容：给已有 financial_orders 表新增收款方式字段 ---- */
+ALTER TABLE `financial_orders`
+  ADD COLUMN IF NOT EXISTS `pay_method` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '收款方式：alipay=支付宝账号,qrcode=收款码' AFTER `reviewer_id`,
+  ADD COLUMN IF NOT EXISTS `pay_info` TEXT NOT NULL COMMENT '收款信息（JSON: {account, qrcode_base64, remark}）' AFTER `pay_method`;
+
+/* ---- 兼容：给已有 products / orders 表新增字段 ---- */
+ALTER TABLE `products`
+  ADD COLUMN IF NOT EXISTS `deposit` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '押金（可选，随订单金额一起打款给发布人）' AFTER `price`;
+
+ALTER TABLE `orders`
+  ADD COLUMN IF NOT EXISTS `actual_paid` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '实际打款金额（后台确认发货时填写，操作不可逆）' AFTER `price`;

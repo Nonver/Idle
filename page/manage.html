@@ -12,54 +12,47 @@
 <div id="navbar"></div>
 
 <main class="container" id="manageApp">
-  <!-- Tab 切换 -->
+
+  <!-- Tab -->
   <div class="tabs">
-    <button :class="{ active: tab==='publish' }" @click="switchTab('publish')">发布商品</button>
-    <button :class="{ active: tab==='mine' }" @click="switchTab('mine')">我的商品</button>
+    <button :class="{active:tab==='publish'}" @click="swTab('publish')">发布商品</button>
+    <button :class="{active:tab==='mine'}" @click="swTab('mine')">我的商品</button>
   </div>
 
-  <!-- 发布商品 -->
-  <section v-show="tab==='publish'" class="panel">
+  <!-- 发布 -->
+  <section v-show="showPub" class="panel">
     <div class="card publish-card">
-      <div class="field">
-        <label>商品标题</label>
-        <input v-model="form.title" type="text" placeholder="例如：九成新 山地自行车" maxlength="40" />
-      </div>
-      <div class="field">
-        <label>商品图片</label>
+      <div class="field"><label>商品标题</label><input v-model="form.title" type="text" placeholder="例如：九成新 山地自行车" maxlength="40"/></div>
+      <div class="field"><label>商品图片</label>
         <div class="img-picker" @click="$refs.pImage.click()">
-          <span v-if="!imgData">{{ imgHint }}</span>
-          <img v-else :src="imgData" alt="预览" style="display:block;max-width:100%;max-height:200px;object-fit:cover;border-radius:8px" />
-          <input ref="pImage" type="file" accept="image/*" hidden @change="onImgChange" />
+          <span v-if="!imgData">{{imgHint}}</span>
+          <img v-else :src="imgData" alt="预览" style="display:block;max-width:100%;max-height:200px;object-fit:cover;border-radius:8px"/>
+          <input ref="pImage" type="file" accept="image/*" hidden @change="onImg"/>
         </div>
       </div>
-      <div class="field">
-        <label>价格（¥）</label>
-        <input v-model.number="form.price" type="number" min="0" step="0.01" placeholder="0.00" />
+      <div class="field"><label>价格（¥）</label><input v-model="form.price" type="number" min="0" step="0.01" placeholder="0.00"/>
+        <div class="hint" v-if="Number(form.price)>0">发布将冻结 ¥{{form.price}} 作为保证金</div>
       </div>
-      <div class="field">
-        <label>发布人</label>
-        <input :value="me.nickname" type="text" readonly />
-        <div class="hint">默认取当前登录账号，发布后不可修改</div>
-      </div>
-      <button class="btn btn--accent btn--block" :disabled="publishing" @click="doPublish">{{ publishing ? '发布中...' : '发布商品' }}</button>
+      <div class="field"><label>发布人</label><input :value="nick" type="text" readonly/></div>
+      <div class="publish-balance">当前余额：<b>&yen;{{bTxt}}</b></div>
+      <button class="btn btn--accent btn--block" :disabled="publishing" @click="doPub">{{btnTxt}}</button>
     </div>
   </section>
 
   <!-- 我的商品 -->
-  <section v-show="tab==='mine'" class="panel">
-    <template v-if="myList.length > 0">
-      <div v-for="p in myList" :key="p.id" class="card my-item">
-        <img :src="imgUrl(p.img)" :alt="p.title" @click="zoomImg(p.img)" style="cursor:pointer" />
+  <section v-show="showMine" class="panel">
+    <template v-if="hasList">
+      <div v-for="(p,i) in list" :key="gId(p)||i" class="card my-item">
+        <img :src="imgSrc(p)" :alt="gT(p)" @click="zoom(p)" style="cursor:pointer"/>
         <div class="my-item__info">
-          <p class="my-item__title">{{ p.title }}</p>
-          <div class="my-item__meta">发布人：{{ p.publisher }}</div>
-          <div class="my-item__price price">&yen;{{ p.price }}</div>
-          <span class="badge" :class="p.status==='on'?'badge--on':'badge--off'">{{ p.status==='on'?'在售':'已下架' }}</span>
+          <p class="my-item__title">{{gT(p)}}</p>
+          <div class="my-item__meta">发布人：{{gPub(p)}}</div>
+          <div class="my-item__price price">&yen;{{gP(p)}}</div>
+          <span class="badge" :class="sCls(p)">{{sLabel(p)}}</span>
         </div>
         <div class="my-item__ops">
-          <button class="btn btn--sm" @click="toggleProd(p)">{{ p.status==='on'?'下架':'上架' }}</button>
-          <button class="btn btn--sm btn-danger" @click="delProd(p)">删除</button>
+          <button v-if="!isSold(p)" class="btn btn--sm" @click="doToggle(p)">{{isOn(p)?'下架':'上架'}}</button>
+          <button v-if="!isSold(p)" class="btn btn--sm btn-danger" @click="doDel(p)">删除</button>
         </div>
       </div>
     </template>
@@ -67,6 +60,7 @@
       <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><br/>你还没有发布商品
     </div>
   </section>
+
 </main>
 
 <div id="footer"></div>

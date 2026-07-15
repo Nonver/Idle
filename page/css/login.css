@@ -31,6 +31,8 @@
   color: #fff;
   font-size: 26px; font-weight: 900;
   margin-bottom: 14px;
+  background-size: cover;
+  background-position: center;
 }
 .login-header__title {
   font-size: 22px; font-weight: 800; color: var(--text); margin: 0 0 4px;
@@ -53,9 +55,8 @@
   box-shadow: 0 4px 14px rgba(19,194,163,.35);
 }
 
-/* 表单 */
-.login-form { display: none; padding: 8px 22px 28px; }
-.login-form.active { display: block; }
+/* 表单 — 显隐由 Vue v-show 控制，不用 CSS display:none */
+.login-form { padding: 8px 22px 28px; }
 
 .login-field {
   margin-bottom: 14px;
@@ -109,11 +110,14 @@
   box-shadow: 0 0 0 3px rgba(19,194,163,.1);
 }
 .captcha-canvas {
-  flex: none; width: 110px; height: 42px; border-radius: 8px;
+  flex: none; width: 130px; height: 46px; border-radius: 10px;
   border: 1.5px solid var(--border); cursor: pointer;
-  background: #f0f2f5; display: block; transition: border-color .2s;
+  background: #f0f2f5; display: block; transition: border-color .2s, transform .15s;
 }
-.captcha-canvas:hover { border-color: var(--primary); }
+.captcha-canvas:hover {
+  border-color: var(--primary);
+  transform: scale(1.03);
+}
 
 /* 提交按钮 */
 .btn-login-submit {
@@ -131,6 +135,13 @@
 /* 底部提示 */
 .login-footer {
   text-align: center; padding: 0 22px 24px; font-size: 12px; color: var(--text-soft);
+}
+
+/* 屏幕阅读器专用（A11y） */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
 }
 
 /* 移动端适配 */

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<title>系统配置 · XZWP 管理后台</title>
+		<link rel="stylesheet" href="css/shared.css" />
+		<link rel="stylesheet" href="css/settings.css" />
+	</head>
+	<body>
+		<div class="layout">
+			<aside class="sidebar">
+				<div class="side-brand"><span class="brand-mark" data-brand-logo>X</span><span class="brand-text"><span
+							data-brand>闲置微铺</span><small>运营管理后台</small></span></div>
+				<nav class="side-nav">
+					<a href="dashboard.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<rect x="3" y="3" width="7" height="7" rx="1" />
+							<rect x="14" y="3" width="7" height="7" rx="1" />
+							<rect x="3" y="14" width="7" height="7" rx="1" />
+							<rect x="14" y="14" width="7" height="7" rx="1" />
+						</svg><span>仪表盘</span></a>
+					<a href="users.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<circle cx="12" cy="8" r="4" />
+							<path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+						</svg><span>用户管理</span></a>
+					<a href="products.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<path d="M3 7l9-4 9 4v10l-9 4-9-4z" />
+							<path d="M3 7l9 4 9-4M12 11v10" />
+						</svg><span>商品管理</span></a>
+					<a href="orders.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<line x1="8" y1="6" x2="21" y2="6" />
+							<line x1="8" y1="12" x2="21" y2="12" />
+							<line x1="8" y1="18" x2="21" y2="18" />
+							<circle cx="3.5" cy="6" r="1.2" />
+							<circle cx="3.5" cy="12" r="1.2" />
+							<circle cx="3.5" cy="18" r="1.2" />
+						</svg><span>订单管理</span></a>
+
+
+					<a href="payconfig.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<rect x="2" y="5" width="20" height="14" rx="2" />
+							<line x1="2" y1="10" x2="22" y2="10" />
+							<circle cx="7" cy="14.5" r="1.5" fill="currentColor" />
+						</svg><span>支付配置</span></a>
+					<a href="finance.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+						</svg><span>财务管理</span></a>
+					<a href="banners.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="1.8">
+							<rect x="3" y="5" width="18" height="14" rx="2" />
+							<circle cx="8.5" cy="12" r="1.6" />
+							<path d="M21 16l-5-5-4 4-2-2-4 4" />
+						</svg><span>轮播图</span></a>
+					<a href="settings.html" class="nav-link active"><svg viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="1.8">
+							<circle cx="12" cy="12" r="3" />
+							<path
+								d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
+						</svg><span>系统配置</span></a>
+				</nav>
+				<div class="side-foot">
+					<div class="side-user">
+						<div class="side-avatar" id="sideAvatar">A</div>
+						<div class="side-meta">
+							<div class="side-name" id="sideName">管理员</div><button class="side-logout"
+								data-act="logout">退出登录</button>
+						</div>
+					</div>
+				</div>
+			</aside>
+
+			<div class="main">
+				<header class="topbar">
+					<div class="topbar-left">
+						<h1 class="page-title">系统配置</h1><span class="page-date" id="pageDate"></span>
+					</div>
+					<div class="topbar-right"><span class="top-admin" id="adminName"></span><button
+							class="btn btn-ghost" data-act="logout">退出</button></div>
+				</header>
+
+				<div class="page-body" id="settingsApp">
+					<div class="panel">
+						<div class="panel-head">
+							<div class="panel-title">基础设置</div>
+							<div class="panel-tools">
+								<button class="btn btn-primary" @click="save"
+									:disabled="saving">{{ saving ? '保存中...' : '保存配置' }}</button>
+							</div>
+						</div>
+						<div class="panel-body">
+							<div class="set-row">
+								<div class="set-label">站点图标</div>
+								<div class="set-ctrl">
+									<div class="set-icon-picker" @click="pickIcon">
+										<img v-if="form.site_icon" :src="iconSrc" class="set-icon-img" />
+										<div v-else class="set-icon-ph"><svg viewBox="0 0 24 24" fill="none"
+												stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+												stroke-linejoin="round">
+												<rect x="3" y="3" width="18" height="18" rx="3" />
+												<circle cx="8.5" cy="8.5" r="1.5" />
+												<path d="M21 15l-5-5-4 4-2-2-4 4" />
+											</svg></div>
+										<div class="set-icon-text">
+											<strong v-if="form.site_icon">已上传图标</strong>
+											<strong v-else>点击上传站点图标</strong>
+											<span class="set-icon-tip">建议 1:1 正方形，支持 PNG / SVG / JPG（≤2MB）</span>
+											<span v-if="!form.site_icon" class="set-icon-tip-sm">将用于浏览器标签页 favicon、登录页
+												logo、导航栏品牌标识</span>
+										</div>
+									</div>
+									<button v-if="form.site_icon" class="btn-remove-icon" @click="clearIcon">✕
+										移除图标</button>
+									<input ref="file" type="file" accept="image/*" hidden @change="onFile" />
+								</div>
+							</div>
+
+							<div class="set-row">
+								<div class="set-label">站点标题<span class="req">*</span></div>
+								<div class="set-ctrl">
+									<input class="field-input" type="text" v-model="form.site_title" maxlength="80"
+										placeholder="如：闲置微铺、校园跳蚤市场、社区二手集市" />
+									<p class="set-hint">将自动应用到：浏览器标签页标题（document.title）、前端导航栏品牌名、前端/后台登录页标题。</p>
+								</div>
+							</div>
+
+							<div class="set-row">
+								<div class="set-label">客服联系方式</div>
+								<div class="set-ctrl">
+									<input class="field-input" type="text" v-model="form.contact" maxlength="255"
+										placeholder="如：微信 abc123 / QQ 群 123456789 / 邮箱 support@example.com" />
+									<p class="set-hint">展示在前端「个人中心 → 联系客服」入口。留空则前端不显示该入口。</p>
+								</div>
+							</div>
+
+							<div class="set-preview">
+								<div class="set-preview__title">💡 实时预览 — 保存后全站即时生效</div>
+								<div class="set-preview__card">
+									<div class="set-preview__bar">
+										<span class="set-preview__logo"
+											:style="form.site_icon ? {backgroundImage:'url('+iconSrc+')',backgroundSize:'cover',backgroundPosition:'center'} : {}">{{ form.site_icon ? '' : (form.site_title||'?').slice(0,1) }}</span>
+										<span class="set-preview__name">{{ form.site_title || '闲置微铺' }}</span>
+										<span class="set-preview__tag">{{ form.contact ? '客服在线' : '让闲置流动起来' }}</span>
+									</div>
+									<div class="set-preview__foot" v-if="form.contact">联系方式：{{ form.contact }}<span
+											style="margin-left:auto;font-size:12px;color:#94a3b8">点击可复制</span></div>
+									<div class="set-preview__foot" v-else style="color:#f59e0b"><span
+											style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:6px"></span>未配置客服联系方式，前端将隐藏「联系客服」入口
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<nav class="tabbar">
+			<a href="dashboard.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<rect x="3" y="3" width="7" height="7" rx="1" />
+					<rect x="14" y="3" width="7" height="7" rx="1" />
+					<rect x="3" y="14" width="7" height="7" rx="1" />
+					<rect x="14" y="14" width="7" height="7" rx="1" />
+				</svg><span>仪表盘</span></a>
+			<a href="users.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<circle cx="12" cy="8" r="4" />
+					<path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+				</svg><span>用户</span></a>
+			<a href="products.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<path d="M3 7l9-4 9 4v10l-9 4-9-4z" />
+					<path d="M3 7l9 4 9-4M12 11v10" />
+				</svg><span>商品</span></a>
+			<a href="orders.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<line x1="8" y1="6" x2="21" y2="6" />
+					<line x1="8" y1="12" x2="21" y2="12" />
+					<line x1="8" y1="18" x2="21" y2="18" />
+				</svg><span>订单</span></a>
+			<a href="banners.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<rect x="3" y="5" width="18" height="14" rx="2" />
+					<circle cx="8.5" cy="12" r="1.6" />
+					<path d="M21 16l-5-5-4 4-2-2-4 4" />
+				</svg><span>轮播</span></a>
+			<a href="settings.html" class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<circle cx="12" cy="12" r="3" />
+					<path
+						d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
+				</svg><span>配置</span></a>
+			<a href="payconfig.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<rect x="2" y="5" width="20" height="14" rx="2" />
+					<line x1="2" y1="10" x2="22" y2="10" />
+				</svg><span>支付</span></a>
+			<a href="finance.html" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="1.8">
+					<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+				</svg><span>财务</span></a>
+		</nav>
+
+		<script src="../js/v3.2.8/vue.global.prod.js"></script>
+		<script src="js/shared.js"></script>
+		<script src="js/settings.js"></script>
+	</body>
+</html>

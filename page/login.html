@@ -15,9 +15,9 @@
 <main class="login-page" id="loginApp">
   <div class="login-card">
     <div class="login-header">
-      <div class="login-header__logo">闲</div>
-      <h1 class="login-header__title">闲置微铺</h1>
-      <p class="login-header__sub">让闲置流动起来</p>
+      <div class="login-header__logo" :style="iconStyle">{{ iconChar }}</div>
+      <h1 class="login-header__title">{{ siteTitle }}</h1>
+      <p class="login-header__sub">{{ siteSub }}</p>
     </div>
 
     <!-- Tab 切换 -->
@@ -27,31 +27,32 @@
     </div>
 
     <!-- 登录表单 -->
-    <form v-show="tab==='login'" class="login-form active" @submit.prevent="doLogin">
+    <form id="loginForm" v-show="tab==='login'" class="login-form" @submit.prevent="doLogin">
       <div class="login-field">
-        <label>账号</label>
-        <input v-model="form.loginUser" type="text" placeholder="请输入账号" autocomplete="username" maxlength="50" />
+        <label for="loginUser">账号</label>
+        <input id="loginUser" v-model="form.loginUser" type="text" placeholder="请输入账号" autocomplete="username" maxlength="50" />
       </div>
       <div class="login-field">
-        <label>密码</label>
-        <input v-model="form.loginPwd" type="password" placeholder="请输入密码" autocomplete="current-password" />
+        <label for="loginPwd">密码</label>
+        <input id="loginPwd" v-model="form.loginPwd" type="password" placeholder="请输入密码" autocomplete="current-password" />
       </div>
       <div class="captcha-row">
-        <input v-model="form.loginCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
-        <canvas ref="loginCanvas" class="captcha-canvas" width="120" height="44" title="点击刷新验证码" @click="refreshLoginCaptcha"></canvas>
+        <label for="loginCaptcha" class="sr-only">验证码</label>
+        <input id="loginCaptcha" v-model="form.loginCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
+        <canvas ref="loginCanvas" class="captcha-canvas" width="130" height="46" title="点击刷新验证码" @click="refreshLoginCaptcha"></canvas>
       </div>
       <button class="btn-login-submit" type="submit">{{ logging ? '登录中...' : '登 录' }}</button>
     </form>
 
     <!-- 注册表单 -->
-    <form v-show="tab==='register'" class="login-form" @submit.prevent="doRegister">
+    <form id="registerForm" v-show="tab==='register'" class="login-form" @submit.prevent="doRegister">
       <div class="login-field">
-        <label>账号</label>
-        <input v-model="form.regUser" type="text" placeholder="设置登录账号（字母或数字）" maxlength="50" />
+        <label for="regUser">账号</label>
+        <input id="regUser" v-model="form.regUser" type="text" placeholder="设置登录账号（字母或数字）" maxlength="50" />
       </div>
       <div class="login-field">
-        <label>昵称</label>
-        <input v-model="form.regNick" type="text" placeholder="展示名（发布人默认用这个）" maxlength="50" />
+        <label for="regNick">昵称</label>
+        <input id="regNick" v-model="form.regNick" type="text" placeholder="展示名（发布人默认用这个）" maxlength="50" />
       </div>
       <div class="avatar-upload">
         <div
@@ -67,12 +68,13 @@
         </div>
       </div>
       <div class="login-field">
-        <label>密码</label>
-        <input v-model="form.regPwd" type="password" placeholder="设置密码（至少6位）" minlength="6" />
+        <label for="regPwd">密码</label>
+        <input id="regPwd" v-model="form.regPwd" type="password" placeholder="设置密码（至少6位）" minlength="6" />
       </div>
       <div class="captcha-row">
-        <input v-model="form.regCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
-        <canvas ref="regCanvas" class="captcha-canvas" width="120" height="44" title="点击刷新验证码" @click="refreshRegCaptcha"></canvas>
+        <label for="regCaptcha" class="sr-only">验证码</label>
+        <input id="regCaptcha" v-model="form.regCaptcha" type="text" placeholder="输入验证码" maxlength="4" autocomplete="off" />
+        <canvas ref="regCanvas" class="captcha-canvas" width="130" height="46" title="点击刷新验证码" @click="refreshRegCaptcha"></canvas>
       </div>
       <button class="btn-login-submit" type="submit">{{ registering ? '注册中...' : '注 册' }}</button>
     </form>

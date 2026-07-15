@@ -29,6 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prod = $p->fetch();
         if (!$prod) { $pdo->rollBack(); json_out(1, '商品不存在或已下架'); }
 
+        /* 发布人不可购买自己发布的商品（publisher 存的是昵称，与 $_SESSION['nickname'] 一致） */
+        if (($prod['publisher'] ?? '') === ($_SESSION['nickname'] ?? '')) {
+            $pdo->rollBack(); json_out(1, '不能购买自己发布的商品');
+        }
+
         $buyer = $pdo->prepare('SELECT id,balance,username FROM users WHERE id=? FOR UPDATE');
         $buyer->execute([$_SESSION['uid']]);
         $buyerRow = $buyer->fetch();
@@ -45,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ins->execute([$prod['id'], $prod['title'], $prod['price'], $prod['publisher'], $buyerRow['username'], time(), 'pending']);
         $oid = $pdo->lastInsertId();
 
-        // 商品下架
-        $pdo->prepare('UPDATE products SET status=\'off\' WHERE id=?')->execute([$pid]);
+        // 商品标记为已售（区别于发布人主动下架：不触发发布保证金退回，由后台统一打款）
+        $pdo->prepare('UPDATE products SET status=\'sold\' WHERE id=?')->execute([$pid]);
 
         $pdo->commit();
 

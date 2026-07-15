@@ -1,6 +1,8 @@
 /* finance.js — 财务管理（Vue 3 版本） */
 (function () {
   'use strict';
+  if (typeof Vue === 'undefined') { console.error('[xzwp-admin] Vue 未加载'); return; }
+  if (typeof window.Admin === 'undefined') { console.error('[xzwp-admin] shared.js 未正确加载'); return; }
 
   var API = Admin.API + 'finance.php';
   var $ = function (s) { return document.querySelector(s); };
@@ -35,7 +37,9 @@
         reviewAction: '',     // approve | reject
         actualAmount: null,
         reviewNote: '',
-        submitting: false
+        submitting: false,
+        // 收款码预览
+        qrImgSrc: ''
       };
     },
 
@@ -120,7 +124,57 @@
         this.actualAmount = null;   // 重置
         this.reviewNote = '';
         this.submitting = false;
+        this.qrImgSrc = '';          // 重置收款码预览
         this.reviewVisible = true;
+        /* 提现且有收款码，自动加载 */
+        if (row && row.type === 'withdraw' && this.parsePayInfo(row).hasQr) {
+          this.loadQrImg();
+        }
+      },
+
+      /* ---- 解析 pay_info JSON（安全） ---- */
+      parsePayInfo: function (row) {
+        if (!row || row.type !== 'withdraw') return { method: '', methodLabel: '', account: '', hasQr: false, remark: '' };
+        var info = {};
+        try { info = JSON.parse(row.pay_info || '{}'); } catch(e) { info = {}; }
+        var m = row.pay_method || info.method || '';
+        return {
+          method: m,
+          methodLabel: m === 'alipay' ? '支付宝' : (m === 'qrcode' ? '收款码' : m || '未知'),
+          account: info.account || '',
+          hasQr: !!(info.qrcode && info.qrcode.length > 10),
+          remark: info.remark || ''
+        };
+      },
+
+      /* ---- 加载收款码图片 ---- */
+      loadQrImg: function () {
+        var pi = this.parsePayInfo(this.reviewRow);
+        if (pi.hasQr) {
+          try {
+            var info = JSON.parse(this.reviewRow.pay_info || '{}');
+            this.qrImgSrc = info.qrcode || '';
+          } catch(e) { this.qrImgSrc = ''; }
+        }
+      },
+
+      /* ---- 表格中点击查看收款码（lightbox 直接预览） ---- */
+      showQrImg: function (row) {
+        var pi = this.parsePayInfo(row);
+        if (!pi.hasQr) return;
+        try {
+          var info = JSON.parse(row.pay_info || '{}');
+          var src = info.qrcode || '';
+          if (src && src.length > 10) {
+            Admin.lightbox && Admin.lightbox(src);
+          }
+        } catch(e) {}
+      },
+
+      /* ---- 弹窗内放大收款码 ---- */
+      lightboxQr: function () {
+        if (!this.qrImgSrc) return;
+        Admin.lightbox && Admin.lightbox(this.qrImgSrc);
       },
 
       /* ---- 提交审核 ---- */

@@ -18,7 +18,7 @@ if ($act === 'records' && $method === 'GET') {
     $type = trim($_GET['type'] ?? '');
     $status = trim($_GET['status'] ?? '');
     if (!in_array($type, ['recharge', 'withdraw', '', 'all'], true)) json_out(1, 'type 参数非法');
-    $sql = 'SELECT fo.id, fo.type, fo.user_id, fo.username, fo.amount, fo.actual_amount, fo.status, fo.review_note, fo.created_at, fo.reviewed_at, u.nickname FROM financial_orders fo LEFT JOIN users u ON fo.user_id=u.id WHERE 1=1';
+    $sql = 'SELECT fo.id, fo.type, fo.user_id, fo.username, fo.amount, fo.actual_amount, fo.status, fo.review_note, fo.created_at, fo.reviewed_at, fo.pay_method, fo.pay_info, u.nickname FROM financial_orders fo LEFT JOIN users u ON fo.user_id=u.id WHERE 1=1';
     $params = [];
     if ($type && $type !== 'all') { $sql .= ' AND fo.type=?'; $params[] = $type; }
     if ($status) { $sql .= ' AND fo.status=?'; $params[] = $status; }

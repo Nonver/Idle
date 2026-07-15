@@ -41,6 +41,12 @@
       <span class="profile-balance__num">&yen;{{ user.balance || 0 }}</span>
     </div>
 
+    <div v-if="contact" class="contact-bar" @click="copyContact">
+      <svg class="contact-bar__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h4v16H4zM4 9h4M14 4h6v16h-6zM14 9h6M9 12h5"/></svg>
+      <span class="contact-bar__txt">联系客服：{{ contact }}</span>
+      <span class="contact-bar__copy">复制</span>
+    </div>
+
     <div class="menu">
       <div v-for="item in menuItems" :key="item.act" class="menu__item" @click="onMenuAct(item)">
         <span class="menu__icon" v-html="item.icon"></span>
@@ -71,14 +77,84 @@
   <!-- 提现弹窗（必须在 #userApp 内） -->
   <transition name="modal-fade">
     <div v-if="showWithdraw" class="modal-mask" @click.self="showWithdraw=false">
-      <div class="modal-card">
+      <div class="modal-card wd-modal">
         <div class="modal-head"><h3>提现</h3><button @click="showWithdraw=false">&times;</button></div>
         <div class="modal-body">
-          <input type="number" min="1" placeholder="提现金额（¥）" v-model.number="withdrawAmount" class="finp" />
+          <div class="wd-amount-wrap">
+            <span class="wd-balance-hint">可提现余额：¥{{ user.balance || 0 }}</span>
+          </div>
+
+          <!-- 收款方式选择 -->
+          <div class="fgroup">
+            <label>收款方式</label>
+            <div class="pay-method-tabs">
+              <button type="button" :class="{ active: wdPayMethod==='alipay' }" @click="wdPayMethod='alipay'">支付宝</button>
+              <button type="button" :class="{ active: wdPayMethod==='qrcode' }" @click="wdPayMethod='qrcode'">收款码</button>
+            </div>
+          </div>
+
+          <!-- 支付宝账号 -->
+          <div v-if="wdPayMethod==='alipay'" class="fgroup">
+            <label for="wdAlipay">支付宝账号 / 手机号</label>
+            <input id="wdAlipay" type="text" placeholder="请输入支付宝账号或绑定的手机号" v-model.trim="wdAlipayAccount" class="finp" />
+          </div>
+
+          <!-- 收款二维码上传 -->
+          <div v-if="wdPayMethod==='qrcode'" class="fgroup">
+            <label>收款二维码</label>
+            <div class="qr-upload-area" @click="$refs.wdQrInput.click()">
+              <img v-if="wdQrBase64" :src="wdQrBase64" class="qr-preview" alt="预览" />
+              <template v-else>
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                <span>点击上传微信/支付宝收款码</span>
+                <small>JPG / PNG，建议正方形</small>
+              </template>
+              <input ref="wdQrInput" type="file" accept="image/*" hidden @change="onWdQrChange" />
+            </div>
+          </div>
+
+          <!-- 备注（选填） -->
+          <div class="fgroup">
+            <label for="wdRemark">备注 <span style="font-weight:400;color:var(--text-soft)">选填</span></label>
+            <input id="wdRemark" type="text" placeholder="如：真实姓名、附加说明等" v-model.trim="wdRemark" class="finp" />
+          </div>
+
+          <div class="fgroup">
+            <label>提现金额</label>
+            <input type="number" min="1" :max="user.balance||0" placeholder="请输入提现金额（¥）" v-model.number="withdrawAmount" class="finp" />
+          </div>
         </div>
         <div class="modal-foot">
           <button class="btn btn-ghost" @click="showWithdraw=false">取消</button>
-          <button class="btn btn-primary" @click="doWithdraw" :disabled="withdrawing">{{ withdrawing ? '提交中...' : '确认提现' }}</button>
+          <button class="btn btn-primary" @click="doWithdraw" :disabled="withdrawing">{{ withdrawing ? '提交中…' : '确认提现' }}</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- 修改密码弹窗 -->
+  <transition name="modal-fade">
+    <div v-if="showPwd" class="modal-mask" @click.self="showPwd=false">
+      <div class="modal-card">
+        <div class="modal-head"><h3>修改密码</h3><button @click="showPwd=false">&times;</button></div>
+        <form @submit.prevent="doChangePwd" class="modal-body">
+          <div class="fgroup">
+            <label for="pwdOld">当前密码</label>
+            <input id="pwdOld" type="password" placeholder="请输入当前密码" v-model="pwdForm.oldPwd" class="finp" autocomplete="current-password" />
+          </div>
+          <div class="fgroup">
+            <label for="pwdNew">新密码</label>
+            <input id="pwdNew" type="password" placeholder="请输入新密码（至少6位）" v-model="pwdForm.newPwd" class="finp" autocomplete="new-password" minlength="6" />
+          </div>
+          <div class="fgroup">
+            <label for="pwdConfirm">确认新密码</label>
+            <input id="pwdConfirm" type="password" placeholder="请再次输入新密码" v-model="pwdForm.confirmPwd" class="finp" autocomplete="new-password" />
+          </div>
+          <div class="modal-tip">修改密码后需要重新登录，请妥善保管新密码。</div>
+        </form>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" @click="showPwd=false">取消</button>
+          <button class="btn btn-primary" @click="doChangePwd" :disabled="changingPwd">{{ changingPwd ? '提交中…' : '确认修改' }}</button>
         </div>
       </div>
     </div>

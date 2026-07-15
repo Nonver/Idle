@@ -25,10 +25,19 @@
           v-for="(s,idx) in slides"
           :key="idx"
           class="carousel__slide"
-          :style="{ background: 'linear-gradient(135deg,' + s.c1 + ',' + s.c2 + ')' }"
+          :style="s.img ? {} : { background: 'linear-gradient(135deg,' + (s.c1||'#13c2a3') + ',' + (s.c2||'#36d1dc') + ')' }"
         >
-          <span class="tag">{{ s.tag }}</span>
-          <div style="text-align:center"><h3>{{ s.title }}</h3><p>{{ s.desc }}</p></div>
+          <template v-if="s.img">
+            <a v-if="s.link" :href="s.link" class="slide-link" target="_blank" rel="noopener">
+              <img class="slide-img" :src="imgUrl(s.img)" :alt="s.title || 'banner'" />
+            </a>
+            <img v-else class="slide-img" :src="imgUrl(s.img)" :alt="s.title || 'banner'" />
+          </template>
+          <div class="slide-caption" v-if="s.title || s.tag">
+            <span class="tag" v-if="s.tag">{{ s.tag }}</span>
+            <h3 v-if="s.title">{{ s.title }}</h3>
+            <p v-if="s.desc">{{ s.desc }}</p>
+          </div>
         </div>
       </div>
       <button class="carousel__arrow prev" @click="go((curSlide - 1 + slides.length) % slides.length)">&lsaquo;</button>
@@ -56,7 +65,8 @@
             <div class="product-card__publisher">发布人：<b>{{ p.publisher }}</b></div>
             <div class="product-card__foot">
               <span class="price product-card__price">&yen;{{ p.price }}</span>
-              <button class="buy-btn" @click="buy(p)">购买</button>
+              <button v-if="!isOwn(p)" class="buy-btn" @click="buy(p)">购买</button>
+              <button v-else class="buy-btn buy-btn--own" disabled title="不能购买自己发布的商品">我的商品</button>
             </div>
           </div>
         </div>

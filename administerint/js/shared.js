@@ -134,5 +134,51 @@
     requestAnimationFrame(function(){_lb.classList.add('show'); reset();});
   }
 
-  window.Admin = { API:API, req:req, ok:ok, toast:toast, esc:esc, fmt:fmt, img:img, confirm:confirmDialog, lightbox:lightbox };
+  /* ---------- 系统配置（标题 / 图标 / 客服） ---------- */
+  function iconHref(icon) {
+    if (!icon) return '';
+    if (icon.indexOf('http') === 0 || icon.indexOf('data:') === 0 || icon.indexOf('//') === 0) return icon;
+    return '../api/' + icon.replace(/^(\.\.\/)?api\//, '');
+  }
+  function applyConfig(cfg) {
+    if (!cfg) return;
+    if (cfg.site_icon) {
+      var href = iconHref(cfg.site_icon);
+      var link = document.querySelector('link[rel~="icon"]');
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.href = href;
+      var ap = document.querySelector('link[rel~="apple-touch-icon"]');
+      if (!ap) { ap = document.createElement('link'); ap.rel = 'apple-touch-icon'; document.head.appendChild(ap); }
+      ap.href = href;
+    }
+    if (cfg.site_title) {
+      document.title = document.title.split('XZWP').join(cfg.site_title).split('闲置微铺').join(cfg.site_title);
+    }
+    var brandEls = document.querySelectorAll('[data-brand]');
+    for (var i = 0; i < brandEls.length; i++) brandEls[i].textContent = cfg.site_title || '闲置微铺';
+    var logoEls = document.querySelectorAll('[data-brand-logo]');
+    for (var j = 0; j < logoEls.length; j++) {
+      var el = logoEls[j];
+      if (cfg.site_icon) {
+        el.style.backgroundImage = 'url("' + iconHref(cfg.site_icon) + '")';
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
+      } else {
+        el.style.backgroundImage = '';
+        el.textContent = (cfg.site_title || '?').slice(0, 1);
+      }
+    }
+  }
+  function loadConfig() {
+    return req('settings.php?act=get').then(function(r){
+      if (ok(r) && r.data) applyConfig(r.data);
+      return r.data;
+    }).catch(function(){ return null; });
+  }
+
+  window.Admin = { API:API, req:req, ok:ok, toast:toast, esc:esc, fmt:fmt, img:img, confirm:confirmDialog, lightbox:lightbox, loadConfig:loadConfig, applyConfig:applyConfig };
+
+  /* 自动应用站点配置（标题 / favicon / 品牌） */
+  loadConfig();
 })();

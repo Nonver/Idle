@@ -129,25 +129,30 @@
       return req(API_BASE + 'products.php', null, { loading: true })
         .then((r) => (ok(r) && r.data) || []);
     },
+    /* 轮播图（前端首页） */
+    getBanners() {
+      return req(API_BASE + 'banner.php?act=list')
+        .then((r) => (ok(r) && r.data) || []);
+    },
     getMyProducts(publisher) {
       return req(API_BASE + 'products.php?mine=1&publisher=' + encodeURIComponent(publisher), null, { loading: true })
         .then((r) => (ok(r) && r.data) || []);
     },
     createProduct(data) {
       return req(API_BASE + 'products.php', data).then((r) => {
-        if (ok(r)) netCacheClear();
+        if (ok(r)) { netCacheClear(); if (r.data && r.data.user) saveUser(r.data.user); }
         return ok(r) ? r : { code: 1, msg: r.msg || '发布失败' };
       });
     },
     updateProduct(id, patch) {
       return req(API_BASE + 'products.php?act=update', Object.assign({ id }, patch)).then((r) => {
-        if (ok(r)) netCacheClear();
+        if (ok(r)) { netCacheClear(); if (r.data && r.data.user) saveUser(r.data.user); }
         return ok(r) ? r : { code: 1, msg: r.msg || '操作失败' };
       });
     },
     deleteProduct(id) {
       return req(API_BASE + 'products.php?act=delete', { id }).then((r) => {
-        if (ok(r)) netCacheClear();
+        if (ok(r)) { netCacheClear(); if (r.data && r.data.user) saveUser(r.data.user); }
         return ok(r) ? r : { code: 1, msg: r.msg || '删除失败' };
       });
     },
@@ -188,8 +193,8 @@
         return r;
       });
     },
-    withdraw(amount) {
-      return req(API_BASE + 'wallet.php?act=withdraw', { amount }).then((r) => {
+    withdraw(amount, payInfo) {
+      return req(API_BASE + 'wallet.php?act=withdraw', Object.assign({ amount }, (payInfo || {}))).then((r) => {
         if (ok(r)) return req(API_BASE + 'auth.php?act=me').then((mr) => { if (ok(mr) && mr.data) saveUser(mr.data); return r; });
         return r;
       });
@@ -323,11 +328,16 @@
         '</div>'
       : '<a class="btn-login" href="' + page('login.html') + '">登录 / 注册</a>';
     nav.className = 'navbar';
+    const cfgTitle = (_cfgCache && _cfgCache.site_title) || '闲置微铺';
+    const cfgIcon = (_cfgCache && _cfgCache.site_icon) || '';
+    const logoHtml = cfgIcon
+      ? '<span class="brand__logo"><img src="' + img(cfgIcon) + '" alt="logo" style="width:100%;height:100%;object-fit:cover;border-radius:9px" /></span>'
+      : '<span class="brand__logo">' + esc(cfgTitle.slice(0, 1)) + '</span>';
     nav.innerHTML =
       '<div class="navbar__inner">' +
         '<a class="brand" href="' + home + '">' +
-          '<span class="brand__logo">闲</span>' +
-          '<span class="brand__name">闲置<b>微铺</b></span>' +
+          logoHtml +
+          '<span class="brand__name" data-brand>' + esc(cfgTitle) + '</span>' +
         '</a>' +
         '<nav class="nav">' +
           link('index.html', home, '首页') +
@@ -341,8 +351,9 @@
   function renderFooter() {
     const el = document.getElementById('footer');
     if (!el) return;
+    const cfgTitle = (_cfgCache && _cfgCache.site_title) || '闲置微铺';
     el.className = 'footer';
-    el.innerHTML = '闲置微铺 · 让闲置流动起来 &nbsp;|&nbsp; © 2026 XZWP';
+    el.innerHTML = esc(cfgTitle) + ' · 让闲置流动起来 &nbsp;|&nbsp; © 2026';
   }
 
   /* ---------- 顶部标题栏（读取 body[data-title]，自动注入） ---------- */
@@ -373,6 +384,10 @@
   /* ---------- 顶栏标题自动注入 ---------- */
   if (document.body) renderTopbar();
   else document.addEventListener('DOMContentLoaded', renderTopbar);
+
+  /* ---------- 自动拉取系统配置：favicon / 标题 / 品牌 ---------- */
+  /* 防御性调用：确保即使 loadConfig 内部出错也不会阻断 window.App 赋值 */
+  try { loadConfig(); } catch (e) { console.warn('[xzwp] loadConfig error:', e); }
 
   /* ---------- HTML 转义 ---------- */
   const esc = (s) => {
@@ -485,6 +500,63 @@
     requestAnimationFrame(function () { _lb.classList.add('show'); resetView(); });
   }
 
+  /* ---------- 系统配置（标题 / 图标 / 客服） ---------- */
+  let _cfgCache = null;
+  function _iconHref(icon) {
+    if (!icon) return '';
+    if (/^(https?:|\/\/|data:)/.test(icon)) return icon;
+    return API_BASE + icon.replace(/^(\.\.\/)?api\//, '');
+  }
+  function applyConfig(cfg) {
+    if (!cfg) return;
+    /* favicon（浏览器标签图标） */
+    if (cfg.site_icon) {
+      const href = _iconHref(cfg.site_icon);
+      let link = document.querySelector('link[rel~="icon"]');
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.href = href;
+      let ap = document.querySelector('link[rel~="apple-touch-icon"]');
+      if (!ap) { ap = document.createElement('link'); ap.rel = 'apple-touch-icon'; document.head.appendChild(ap); }
+      ap.href = href;
+    }
+    /* 浏览器标题：替换已知品牌占位（前端“闲置微铺” / 后台“XZWP”） */
+    if (cfg.site_title) {
+      document.title = document.title.split('闲置微铺').join(cfg.site_title).split('XZWP').join(cfg.site_title);
+    }
+    /* 标记了 data-brand 的元素文本统一为站点标题 */
+    const brandEls = document.querySelectorAll('[data-brand]');
+    for (let i = 0; i < brandEls.length; i++) brandEls[i].textContent = cfg.site_title || '闲置微铺';
+    /* 标记了 data-brand-logo 的元素：有图标显示图，否则显示首字 */
+    const logoEls = document.querySelectorAll('[data-brand-logo]');
+    for (let i = 0; i < logoEls.length; i++) {
+      const el = logoEls[i];
+      if (cfg.site_icon) {
+        el.style.backgroundImage = 'url("' + _iconHref(cfg.site_icon) + '")';
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
+      } else {
+        el.style.backgroundImage = '';
+        el.textContent = (cfg.site_title || '?').slice(0, 1);
+      }
+    }
+  }
+  function loadConfig() {
+    /* 同步缓存优先：避免刷新闪烁 */
+    if (!_cfgCache) {
+      try { _cfgCache = JSON.parse(localStorage.getItem('xzwp_sys_cfg') || 'null'); } catch (e) { _cfgCache = null; }
+      if (_cfgCache) { try { applyConfig(_cfgCache); } catch (e2) { console.warn('[xzwp] applyConfig cache error:', e2); } }
+    }
+    return req(API_BASE + 'settings.php?act=get').then((r) => {
+      if (ok(r) && r.data) {
+        _cfgCache = r.data;
+        try { localStorage.setItem('xzwp_sys_cfg', JSON.stringify(r.data)); } catch (e) {}
+        try { applyConfig(r.data); } catch (e2) { console.warn('[xzwp] applyConfig fetch error:', e2); }
+      }
+      return _cfgCache;
+    }).catch(() => _cfgCache);
+  }
+
   /* ---------- 暴露 ---------- */
   global.App = {
     K, read, write, API, toast, modal, confirm: confirmDialog, requireLogin, img,
@@ -493,6 +565,8 @@
     clearApiCache: netCacheClear,
     lightbox,
     renderNav, renderFooter, renderTopbar,
+    config: () => _cfgCache,
+    loadConfig, applyConfig,
     fmtTime(t) {
       const d = new Date(t * 1000); // PHP time() 为秒级
       const p = (n) => (n < 10 ? '0' + n : n);

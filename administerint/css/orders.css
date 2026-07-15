@@ -6,3 +6,11 @@
 .row-ops{display:flex;gap:8px;margin-top:8px}
 .btn-ok{background:#16a34a;color:#fff;border-color:#16a34a}
 .btn-ok:hover{background:#15803d}
+
+/* 发货打款弹窗内表单 */
+.finp{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;transition:.15s}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.fgroup{display:flex;flex-direction:column;gap:6px}
+.fgroup label{font-size:13px;color:var(--muted);font-weight:600}
+.ship-suggest{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f1f5f9;color:var(--text);font-size:13px;font-variant-numeric:tabular-nums}
+.ship-warn{margin-top:12px;color:var(--danger);font-size:13px;font-weight:600}

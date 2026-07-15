@@ -274,6 +274,37 @@ input, textarea, select { font-family: inherit; font-size: 16px; color: var(--te
 .modal__title { font-size: 17px; font-weight: 800; margin: 0 0 16px; }
 .modal__row { display: flex; gap: 10px; margin-top: 18px; }
 
+/* ============ 弹窗卡片（modal-card，Vue transition 弹窗用） ============ */
+.modal-card {
+  background: var(--surface); border-radius: 16px;
+  width: 100%; max-width: 380px; padding: 0;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15), 0 4px 12px rgba(0,0,0,.08);
+  animation: modalIn .25s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-card .modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+}
+.modal-card .modal-head h3 {
+  font-size: 17px; font-weight: 800; margin: 0;
+  color: var(--text);
+}
+.modal-card .modal-head button {
+  background: none; border: none; font-size: 22px;
+  color: var(--text-soft); cursor: pointer;
+  padding: 2px 6px; line-height: 1; border-radius: 6px;
+  transition: all .15s;
+}
+.modal-card .modal-head button:hover { color: #e5484d; background: #fef2f2; }
+.modal-card .modal-body { padding: 20px 20px 8px; }
+.modal-card .modal-foot {
+  display: flex; gap: 10px; padding: 14px 20px 20px;
+}
+
 /* ============ 表单 ============ */
 .field { margin-bottom: 14px; }
 .field label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; }

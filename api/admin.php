@@ -9,8 +9,7 @@
  *        ?act=users&op=delete&id=   删除用户
  *        ?act=users&op=ban&id=&v=1|0 封禁/解封
  *   GET  ?act=products      商品列表（?kw= 搜索）
- *        ?act=products&op=delete&id=        删除商品
- *        ?act=products&op=toggle&id=        上下架切换
+ *        ?act=products&op=off&id=           管理员下架（退回保证金到发布人账户）
  *   GET  ?act=orders        订单列表（含商品缩略图 img）
  *        ?act=orders&op=ship&id=         确认发货：托管款打给发布人 → status=completed
  *        ?act=orders&op=reject&id=        驳回：托管款退回买家 + 商品重新上架 → status=rejected
@@ -134,17 +133,34 @@ if ($act === 'products') {
     if (isset($_GET['op'])) {
         $id = intval($_GET['id'] ?? 0);
 
-        if ($_GET['op'] === 'delete') {
-            db()->prepare('DELETE FROM products WHERE id=?')->execute([$id]);
-            json_out(0, '已删除商品');
-        }
-        if ($_GET['op'] === 'toggle') {
-            $cur = db()->prepare('SELECT status FROM products WHERE id=?');
+        if ($_GET['op'] === 'off') {
+            /* 管理员下架：只能下架在售商品，退回保证金到发布人账户 */
+            $pdo = db();
+            $cur = $pdo->prepare('SELECT * FROM products WHERE id=?');
             $cur->execute([$id]);
-            $r = $cur->fetch();
-            $new = ($r && $r['status'] === 'on') ? 'off' : 'on';
-            db()->prepare('UPDATE products SET status=? WHERE id=?')->execute([$new, $id]);
-            json_out(0, 'ok', ['status' => $new]);
+            $p = $cur->fetch();
+            if (!$p) json_out(1, '商品不存在');
+            if ($p['status'] !== 'on') json_out(1, '该商品不在售，无需下架');
+            if ($p['status'] === 'sold') json_out(1, '该商品已售出，不可操作');
+
+            try {
+                $pdo->beginTransaction();
+                /* 下架退回保证金（price）到发布人账户 */
+                if ($p['price'] > 0) {
+                    $uidSt = $pdo->prepare('SELECT id FROM users WHERE nickname=? LIMIT 1');
+                    $uidSt->execute([$p['publisher']]);
+                    $user = $uidSt->fetch();
+                    if ($user) {
+                        $pdo->prepare('UPDATE users SET balance = balance + ? WHERE id=?')->execute([$p['price'], $user['id']]);
+                    }
+                }
+                $pdo->prepare('UPDATE products SET status=\'off\' WHERE id=?')->execute([$id]);
+                $pdo->commit();
+                json_out(0, '已下架，保证金已退回「' . $p['publisher'] . '」账户', ['status' => 'off']);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                json_out(1, '下架失败：' . $e->getMessage());
+            }
         }
         json_out(1, '未知操作');
     }
@@ -165,7 +181,9 @@ if ($act === 'orders') {
         $pdo = db();
 
         if ($_GET['op'] === 'ship') {
-            // 确认发货：把托管款项打给发布人
+            // 确认发货：由管理员输入实际打款金额，打给发布人（操作不可逆）
+            $amount = isset($_REQUEST['amount']) ? floatval($_REQUEST['amount']) : 0;
+            if ($amount < 0) { json_out(1, '打款金额不能为负数'); }
             try {
                 $pdo->beginTransaction();
                 $o = $pdo->prepare('SELECT * FROM orders WHERE id=? FOR UPDATE');
@@ -177,13 +195,15 @@ if ($act === 'orders') {
                 $seller = $pdo->prepare('SELECT id,balance FROM users WHERE nickname=? FOR UPDATE');
                 $seller->execute([$ord['publisher']]);
                 $sellerRow = $seller->fetch();
-                if ($sellerRow) {
-                    $pdo->prepare('UPDATE users SET balance = balance + ? WHERE id = ?')
-                        ->execute([$ord['price'], $sellerRow['id']]);
+                if (!$sellerRow) {
+                    $pdo->rollBack();
+                    json_out(1, '发布人账号不存在，打款失败');
                 }
-                $pdo->prepare('UPDATE orders SET status=\'completed\' WHERE id=?')->execute([$id]);
+                $pdo->prepare('UPDATE users SET balance = balance + ? WHERE id = ?')
+                    ->execute([$amount, $sellerRow['id']]);
+                $pdo->prepare('UPDATE orders SET status=\'completed\', actual_paid=? WHERE id=?')->execute([$amount, $id]);
                 $pdo->commit();
-                json_out(0, '已确认发货，款项已打给发布人');
+                json_out(0, '已确认发货，已向发布人「' . $ord['publisher'] . '」打款 ¥' . number_format($amount, 2) . '（操作不可逆）');
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
                 json_out(1, '操作失败：' . $e->getMessage());
@@ -220,7 +240,7 @@ if ($act === 'orders') {
 
         json_out(1, '未知操作');
     }
-    $st = db()->query('SELECT o.*, p.img AS img FROM orders o LEFT JOIN products p ON o.product_id=p.id ORDER BY o.created_at DESC');
+    $st = db()->query('SELECT o.*, p.img AS img, p.deposit AS deposit FROM orders o LEFT JOIN products p ON o.product_id=p.id ORDER BY o.created_at DESC');
     json_out(0, '', $st->fetchAll());
 }
 

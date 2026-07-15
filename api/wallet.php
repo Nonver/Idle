@@ -57,11 +57,20 @@ if ($act === 'recharge') {
     $cur = floatval($row['balance'] ?? 0);
     if ($cur < $amount) json_out(1, '余额不足，当前余额 ¥' . number_format($cur, 2));
 
+    /* 收款方式信息 */
+    $payMethod = trim($b['method'] ?? '');
+    if (!in_array($payMethod, ['alipay', 'qrcode'], true)) $payMethod = 'alipay';
+    $payInfoArr = [];
+    if (isset($b['account']))  $payInfoArr['account']  = trim($b['account']);
+    if (isset($b['qrcode']))   $payInfoArr['qrcode']   = substr(trim($b['qrcode']), 0, 500000); /* 截断过大的 base64 */
+    if (isset($b['remark']))   $payInfoArr['remark']   = mb_substr(trim($b['remark']), 0, 200);
+    $payInfoJson = json_encode($payInfoArr, JSON_UNESCAPED_UNICODE);
+
     /* 扣减余额（冻结），等审核通过则确认扣减，拒绝则退回 */
     $pdo->prepare('UPDATE users SET balance = balance - ? WHERE id = ?')->execute([$amount, $uid]);
 
-    $ins = $pdo->prepare('INSERT INTO financial_orders (type,user_id,username,amount,status,created_at) VALUES (?,?,?,?,?,?)');
-    $ins->execute(['withdraw', $uid, $uname, $amount, 'pending', $now]);
+    $ins = $pdo->prepare('INSERT INTO financial_orders (type,user_id,username,amount,status,created_at,pay_method,pay_info) VALUES (?,?,?,?,?,?,?,?)');
+    $ins->execute(['withdraw', $uid, $uname, $amount, 'pending', $now, $payMethod, $payInfoJson]);
     json_out(0, '提现申请已提交，等待管理员审核', ['id' => $pdo->lastInsertId()]);
 
 } else {

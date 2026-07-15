@@ -1,6 +1,8 @@
 /* orders.js — 订单管理（Vue 3） */
 (function(){
   'use strict';
+  if (typeof Vue === 'undefined') { console.error('[xzwp] Vue 未加载'); return; }
+  if (typeof window.App === 'undefined') { console.error('[xzwp] common.js 未正确加载'); return; }
   var App = window.App, API = App.API;
 
   var app = Vue.createApp({
@@ -51,5 +53,5 @@
       fmtTime: App.fmtTime
     }
   });
-  app.mount('#ordersApp');
+  try { app.mount('#ordersApp'); } catch (e) { console.error('[xzwp] orders Vue mount 失败:', e); }
 })();
