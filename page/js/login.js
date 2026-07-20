@@ -132,7 +132,7 @@
       this.refreshLoginCaptcha();
       this.refreshRegCaptcha();
       if(API.getSession()) location.href='user.html';
-      App.renderNav('login.html');
+      /* 登录页：使用顶部返回栏（data-back=../index.html），不渲染底部导航 */
       /* 从系统配置读取标题/图标/描述（覆盖默认值） */
       var cfg=App.config();
       if(cfg){

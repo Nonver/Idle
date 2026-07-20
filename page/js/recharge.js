@@ -29,8 +29,7 @@
             localStorage.setItem('xzwp_cache_user',JSON.stringify(r.data));
           }
         });
-        App.renderNav('user.html');
-        App.renderFooter();
+        /* 子页面：使用顶部返回栏（data-back=user.html），不渲染底部导航 */
         API.getPayConfigs('recharge').then(function(list){
           self.accounts=list||[];
           self.accountsLoaded=true;

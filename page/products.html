@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>全部商品 · 闲置微铺</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/home.css" />
+  <link rel="stylesheet" href="css/products-list.css" />
+</head>
+<body data-title="全部商品" data-back="../index.html">
+<main class="container" id="plistApp">
+
+  <!-- 搜索栏 -->
+  <div class="search-bar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" v-model="kw" placeholder="搜索商品名称..." @keyup.enter="doSearch" />
+      <button v-if="kw" class="search-clear" @click="clearKw">&times;</button>
+    </div>
+    <button class="search-go-btn" @click="doSearch">搜索</button>
+  </div>
+
+  <!-- 分类标签 -->
+  <div class="cat-tabs">
+    <button
+      :class="['cat-tab', {active: activeCat === -1}]"
+      @click="switchCat(-1)"
+    >全部</button>
+    <button
+      v-for="c in categories"
+      :key="c.id"
+      :class="['cat-tab', {active: activeCat === c.id}]"
+      @click="switchCat(c.id)"
+    >{{ c.name }}</button>
+  </div>
+
+  <!-- 商品列表 -->
+  <template v-if="list.length > 0">
+    <div class="product-grid">
+      <div v-for="p in list" :key="p.id || p.order_id" class="product-card" :class="{ 'card--admin': p._type==='admin_order' }" @click="goDetail(p)">
+        <img class="product-card__img" :src="imgUrl(p.img||'')" :alt="p.title" @click.stop="(p.img||'') && zoomImg(p.img)" />
+        <div class="product-card__body">
+          <p class="product-card__title">{{ p.title }}
+            <em v-if="p._type==='admin_order'" class="tag-admin">官方</em>
+          </p>
+          <div class="product-card__publisher">发布人：<b>{{ p.publisher }}</b></div>
+          <div v-if="p.description && p._type==='admin_order'" class="product-card__desc">{{ p.description }}</div>
+          <div class="product-card__foot">
+            <span class="price product-card__price">&yen;{{ p.price }}</span>
+            <button v-if="p._type==='admin_order'" class="buy-btn buy-btn--pub" @click.stop="buy(p)">购买</button>
+            <button v-else-if="!isOwn(p)" class="buy-btn" @click.stop="buy(p)">购买</button>
+            <button v-else class="buy-btn buy-btn--own" disabled>我的商品</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <div v-else-if="!loading" class="empty">
+    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg><br/>暂无商品
+  </div>
+
+  <!-- 购买弹窗（复用首页逻辑） -->
+  <transition name="modal-fade">
+    <div v-if="showBuyModal" class="modal-mask" :class="{show:showBuyModal}" @click.self="showBuyModal=false">
+      <div class="modal-card">
+        <div class="modal-head"><h3>确认购买</h3><button @click="showBuyModal=false">&times;</button></div>
+        <div class="modal-body">
+          <div class="buy-m-title">{{ buyProduct.title }}</div>
+          <div class="buy-m-pub">发布人：{{ buyProduct.publisher }}</div>
+
+          <div v-if="!showCustomPrice" class="buy-m-price">&yen;{{ buyProduct.price }}</div>
+          <div v-else class="buy-m-cp-wrap">
+            <div class="buy-m-cp-original">原价 &yen;{{ buyProduct.price }}</div>
+            <div class="buy-m-cp-input-row">
+              <span class="buy-m-yen">&yen;</span>
+              <input type="number" min="0.01" step="0.01" v-model.number="customAmount" class="buy-m-cp-input" placeholder="输入金额" />
+            </div>
+            <div class="buy-m-cp-hint">参考价 &yen;{{ buyProduct.price }}，可自行调整</div>
+          </div>
+
+          <div v-if="buyProduct && ((buyProduct.description||'').trim() || (buyProduct.buyer_note||'').trim())" class="buy-m-desc">
+            {{ (buyProduct.description||'').trim() || buyProduct.buyer_note }}
+          </div>
+
+          <div class="buy-sep"></div>
+
+          <div class="buy-field">
+            <label class="buy-field-label">备注（选填）</label>
+            <div class="buy-note-wrap">
+              <textarea v-model="buyerNote" class="buy-note-input" placeholder="如：代领快递，取件码 12-3-4" maxlength="500" rows="2"></textarea>
+              <span class="buy-note-count">{{ (buyerNote||'').length }}/500</span>
+            </div>
+          </div>
+
+          <div class="buy-field">
+            <label class="buy-field-label">上传图片（选填）</label>
+            <input type="file" ref="buyImgInput" accept="image/*" capture="environment" style="display:none" @change="pickBuyImg" />
+            <div v-if="!(buyerImgPreview||'')" class="buy-img-placeholder" @click="$refs.buyImgInput && $refs.buyImgInput.click()">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#13c2a3" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5-4 4-2-2-4 4"/></svg>
+              <span>点击上传图片</span>
+              <small>取件码截图 / 代领凭证（最多1张）</small>
+            </div>
+            <div v-else class="buy-img-preview">
+              <img :src="(buyerImgPreview||'')" @click="zoomImg(buyerImgPreview)" />
+              <button class="buy-img-remove" @click.stop="clearBuyImg">&times;</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-ghost" @click="showBuyModal=false">取消</button>
+          <button class="btn btn-primary" :disabled="buying" @click="confirmBuy">{{ buying ? '支付中...' : '确认支付' }}</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+</main>
+
+<script src="../js/v3.2.8/vue.global.prod.js"></script>
+<script src="/config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/products-list.js"></script>
+</body>
+</html>

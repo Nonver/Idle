@@ -110,9 +110,31 @@ ALTER TABLE `financial_orders`
   ADD COLUMN IF NOT EXISTS `pay_method` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '收款方式：alipay=支付宝账号,qrcode=收款码' AFTER `reviewer_id`,
   ADD COLUMN IF NOT EXISTS `pay_info` TEXT NOT NULL COMMENT '收款信息（JSON: {account, qrcode_base64, remark}）' AFTER `pay_method`;
 
-/* ---- 兼容：给已有 products / orders 表新增字段 ---- */
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `name`        VARCHAR(50)  NOT NULL COMMENT '分类名称',
+  `sort_order`  INT          NOT NULL DEFAULT 0 COMMENT '排序，越小越靠前',
+  `created_at`  INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+/* ---- 兼容：给已有 products 表新增分类外键 ---- */
 ALTER TABLE `products`
+  ADD COLUMN IF NOT EXISTS `category_id` INT NOT NULL DEFAULT 0 COMMENT '分类ID（0=未分类）' AFTER `status`,
   ADD COLUMN IF NOT EXISTS `deposit` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '押金（可选，随订单金额一起打款给发布人）' AFTER `price`;
 
 ALTER TABLE `orders`
   ADD COLUMN IF NOT EXISTS `actual_paid` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '实际打款金额（后台确认发货时填写，操作不可逆）' AFTER `price`;
+
+/* ---- 买家备注与图片（购买时可选填：取件码、代领信息等） ---- */
+ALTER TABLE `orders`
+  ADD COLUMN `buyer_note` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '买家备注（选填：取件码、代领信息等）' AFTER `actual_paid`,
+  ADD COLUMN `buyer_img` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '买家上传图片路径（选填：取件码截图等）' AFTER `buyer_note`;
+
+/* ---- 管理员发布单扩展字段 ---- */
+ALTER TABLE `orders`
+  ADD COLUMN IF NOT EXISTS `pub_order_id` INT NOT NULL DEFAULT 0 COMMENT '关联的管理员发布单ID（0=非发布单购买）' AFTER `buyer_img`,
+  ADD COLUMN IF NOT EXISTS `img` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '商品封面图路径（管理员发布单用）' AFTER `pub_order_id`,
+  ADD COLUMN IF NOT EXISTS `custom_price` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否开启自定义价格（0=否,1=是,价格>2000时可自定金额）' AFTER `img`,
+  ADD COLUMN IF NOT EXISTS `category_id` INT NOT NULL DEFAULT 0 COMMENT '分类ID（管理员发布单用）' AFTER `custom_price`,
+  ADD COLUMN IF NOT EXISTS `description` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '商品描述说明（管理员发布单用）' AFTER `category_id`;

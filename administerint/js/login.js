@@ -1,16 +1,16 @@
 /* login.js — 后台登录页逻辑 */
 (function(){
   'use strict';
-  var API='../api/';
+  var API=(typeof window!=='undefined' && window.XZWP_API)?window.XZWP_API:'/api/';
   function req(u, body){
-    return fetch(API+u, {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(body)})
+    return fetch(API+u, {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify(body)})
       .then(function(r){ return r.ok ? r.json() : {code:1, msg:'接口异常 '+r.status}; })
       .catch(function(){ return {code:1, msg:'网络错误'}; });
   }
   function ok(r){ return r && r.code === 0; }
 
   /* 已登录则直接进仪表盘 */
-  fetch(API+'admin.php?act=me', {credentials:'same-origin'}).then(function(r){ return r.json(); }).then(function(r){
+  fetch(API+'admin.php?act=me', {credentials:'include'}).then(function(r){ return r.json(); }).then(function(r){
     if (ok(r)) location.href = 'dashboard.html';
   });
 
@@ -33,7 +33,7 @@
   function applyCfg(cfg){
     if (!cfg) return;
     if (cfg.site_icon) {
-      var href = cfg.site_icon.indexOf('http') === 0 ? cfg.site_icon : ('../api/' + cfg.site_icon);
+      var href = cfg.site_icon.indexOf('http') === 0 ? cfg.site_icon : (API + cfg.site_icon);
       var link = document.querySelector('link[rel~="icon"]');
       if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
       link.href = href;
@@ -46,13 +46,13 @@
       for (var j = 0; j < logoEls.length; j++) {
         var el = logoEls[j];
         if (cfg.site_icon) {
-          el.style.backgroundImage = 'url("' + (cfg.site_icon.indexOf('http') === 0 ? cfg.site_icon : ('../api/' + cfg.site_icon)) + '")';
+          el.style.backgroundImage = 'url("' + (cfg.site_icon.indexOf('http') === 0 ? cfg.site_icon : (API + cfg.site_icon)) + '")';
           el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; el.textContent = '';
         } else { el.style.backgroundImage = ''; el.textContent = (cfg.site_title || '?').slice(0, 1); }
       }
     }
   }
-  fetch('../api/settings.php?act=get', { credentials: 'same-origin' })
+  fetch(API+'settings.php?act=get', { credentials: 'include' })
     .then(function(r){ return r.json(); })
     .then(function(r){ if (r && r.code === 0) applyCfg(r.data); })
     .catch(function(){});

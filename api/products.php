@@ -30,8 +30,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $st->execute([$_SESSION['nickname']]);
         json_out(0, '', $st->fetchAll());
     }
-    $st = db()->query('SELECT * FROM products WHERE status=\'on\' ORDER BY created_at DESC');
-    json_out(0, '', $st->fetchAll());
+    /* 前端商品列表：支持 limit（首页4个）、kw（搜索）、cat_id（分类筛选） */
+    $limit  = min(intval($_GET['limit'] ?? 0), 50) ?: null;   /* 0 = 不限制 */
+    $kw     = trim($_GET['kw'] ?? '');
+    $catId  = intval($_GET['cat_id'] ?? -1);                   /* -1 = 不限分类 */
+    $sql    = "SELECT * FROM products WHERE status='on'";
+    $params = [];
+    if ($catId >= 0) { $sql .= " AND category_id=?"; $params[] = $catId; }
+    if ($kw !== '')      { $sql .= " AND title LIKE ?";     $params[] = '%' . addcslashes($kw, '%_') . '%'; }
+    $sql .= " ORDER BY created_at DESC";
+    if ($limit) $sql .= " LIMIT " . intval($limit);
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    $products = $st->fetchAll();
+    // 标记类型
+    foreach ($products as &$p) { $p['_type'] = 'product'; }
+    unset($p);
+
+    // 同时返回管理员发布的可购买订单（available），合并到结果中
+    $pubSql = "SELECT id AS order_id, title, price, img, publisher, description, buyer_note, status, custom_price, category_id, created_at FROM orders WHERE status='available'";
+    $pubParams = [];
+    if ($catId >= 0) { $pubSql .= " AND category_id=?"; $pubParams[] = $catId; }
+    if ($kw !== '') {
+        $pubSql .= " AND title LIKE ?";
+        $pubParams[] = '%' . addcslashes($kw, '%_') . '%';
+    }
+    $pubSql .= " ORDER BY created_at DESC";
+    if ($limit) $pubSql .= " LIMIT " . intval($limit);
+    $pubSt = db()->prepare($pubSql);
+    $pubSt->execute($pubParams);
+    $published = $pubSt->fetchAll();
+    foreach ($published as &$pp) { $pp['_type'] = 'admin_order'; }
+    unset($pp);
+
+    json_out(0, '', array_merge($products, $published));
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($b['title'] ?? '');
         $price = isset($b['price']) ? floatval($b['price']) : 0;
         $deposit = isset($b['deposit']) ? floatval($b['deposit']) : 0;
+        $catId = isset($b['category_id']) ? intval($b['category_id']) : 0;   /* 分类ID */
         $desc  = trim($b['desc'] ?? $title);
         if ($title === '') json_out(1, '请填写商品标题');
         if ($price < 0) json_out(1, '价格无效');
@@ -63,8 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare('UPDATE users SET balance = balance - ? WHERE id=?')->execute([$price, $_SESSION['uid']]);
             }
             $img = save_image($b['img'] ?? '');
-            $ins = $pdo->prepare('INSERT INTO products (title,price,deposit,publisher,img,description,status,created_at) VALUES (?,?,?,?,?,?,?,?)');
-            $ins->execute([$title, $price, $deposit, $_SESSION['nickname'], $img, $desc, 'on', time()]);
+            $ins = $pdo->prepare('INSERT INTO products (title,price,deposit,publisher,img,description,status,category_id,created_at) VALUES (?,?,?,?,?,?,?,?,?)');
+            $ins->execute([$title, $price, $deposit, $_SESSION['nickname'], $img, $desc, 'on', $catId, time()]);
             $id = $pdo->lastInsertId();
             $me = $pdo->prepare('SELECT id,username,nickname,balance FROM users WHERE id=?');
             $me->execute([$_SESSION['uid']]);
@@ -72,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             json_out(0, '发布成功' . ($price > 0 ? '，已冻结发布保证金 ¥' . number_format($price, 2) : ''), [
                 'id' => $id, 'title' => $title, 'price' => $price, 'deposit' => $deposit,
                 'publisher' => $_SESSION['nickname'], 'img' => $img, 'status' => 'on',
+                'category_id' => $catId,
                 'user' => $me->fetch(),
             ]);
         } catch (Exception $e) {

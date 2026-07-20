@@ -1,15 +1,16 @@
 /* shared.js — 后台通用逻辑：登录守卫 / 填充管理员信息 / 退出 / 工具函数 */
 (function(){
   'use strict';
-  var API='../api/';
+  /* API 基址：优先读取 config.js 的全局配置，未加载时兜底 */
+  var API=(typeof window!=='undefined' && window.XZWP_API)?window.XZWP_API:'/api/';
 
   function req(u, body){
     if (body) {
-      return fetch(API+u, {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(body)})
+      return fetch(API+u, {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify(body)})
         .then(function(r){ return r.ok ? r.json() : {code:1, msg:'接口异常 '+r.status}; })
         .catch(function(){ return {code:1, msg:'网络错误'}; });
     }
-    return fetch(API+u, {credentials:'same-origin'})
+    return fetch(API+u, {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : {code:1, msg:'接口异常 '+r.status}; })
       .catch(function(){ return {code:1, msg:'网络错误'}; });
   }
@@ -26,7 +27,7 @@
     var d = new Date(t*1000), p = function(n){ return n<10?'0'+n:n; };
     return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
   }
-  function img(p){ if (!p) return ''; return p.indexOf('http')===0 ? p : ('../api/'+p); }
+  function img(p){ if (!p) return ''; return p.indexOf('http')===0 ? p : (API+p); }
 
   /* 自定义确认弹窗（替代原生 confirm），返回 Promise<boolean> */
   function confirmDialog(opts){
@@ -138,7 +139,7 @@
   function iconHref(icon) {
     if (!icon) return '';
     if (icon.indexOf('http') === 0 || icon.indexOf('data:') === 0 || icon.indexOf('//') === 0) return icon;
-    return '../api/' + icon.replace(/^(\.\.\/)?api\//, '');
+    return API + icon.replace(/^(\.\.\/)?api\//, '');
   }
   function applyConfig(cfg) {
     if (!cfg) return;

@@ -1,3 +1,13 @@
+<!--
+  闲置微铺（Idle / xzwp）
+
+  ⚠️ 本项目仅用于学习演示，禁止用于真实资金交易。
+  使用者二次开发必须遵守中华人民共和国法律法规；
+  若用于非法运营，作者不承担任何法律责任。
+  后续公安机关核查时可以佐证你开发时就没有违法意图。
+
+  前端入口文件：首页商品列表、购买下单、轮播图
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -55,17 +65,22 @@
 
   <!-- 商品区 -->
   <section class="products">
-    <h2 class="section-title">闲置好物</h2>
+    <div class="section-head">
+      <h2 class="section-title">闲置好物</h2>
+      <button class="view-all-btn" @click="goProducts">查看全部 &rsaquo;</button>
+    </div>
     <template v-if="productList.length > 0">
       <div class="product-grid">
-        <div v-for="p in productList" :key="p.id" class="product-card">
-          <img class="product-card__img" :src="imgUrl(p.img)" :alt="p.title" @click="zoomImg(p.img)" />
+        <div v-for="p in productList" :key="p.id || p.order_id" class="product-card" @click="goDetail(p)">
+          <img class="product-card__img" :src="imgUrl(p.img)" :alt="p.title" @click.stop="zoomImg(p.img)" />
           <div class="product-card__body">
-            <p class="product-card__title">{{ p.title }}</p>
+            <p class="product-card__title">{{ p.title }}
+              <em v-if="p._type==='admin_order'" class="tag-admin">官方</em>
+            </p>
             <div class="product-card__publisher">发布人：<b>{{ p.publisher }}</b></div>
             <div class="product-card__foot">
               <span class="price product-card__price">&yen;{{ p.price }}</span>
-              <button v-if="!isOwn(p)" class="buy-btn" @click="buy(p)">购买</button>
+              <button v-if="!isOwn(p)" class="buy-btn" @click.stop="buy(p)">购买</button>
               <button v-else class="buy-btn buy-btn--own" disabled title="不能购买自己发布的商品">我的商品</button>
             </div>
           </div>
@@ -79,14 +94,52 @@
 
   <!-- 购买弹窗（必须在 #homeApp 内，Vue 才能管理 v-if / @click） -->
   <transition name="modal-fade">
-    <div v-if="showBuyModal" class="modal-mask" @click.self="showBuyModal=false">
+    <div v-if="showBuyModal" class="modal-mask" :class="{show:showBuyModal}" @click.self="showBuyModal=false">
       <div class="modal-card">
         <div class="modal-head"><h3>确认购买</h3><button @click="showBuyModal=false">&times;</button></div>
-        <div class="modal-body" style="text-align:center">
-          <img v-if="buyProduct" :src="imgUrl(buyProduct.img)" style="width:120px;border-radius:10px;margin:0 auto 12px;display:block;cursor:pointer" @click="zoomImg(buyProduct.img)" />
-          <div v-if="buyProduct" style="font-weight:700;font-size:15px">{{ buyProduct.title }}</div>
-          <div v-if="buyProduct" class="price" style="font-size:22px;margin-top:6px">&yen;{{ buyProduct.price }}</div>
-          <div v-if="buyProduct" style="margin-top:6px;color:#999">发布人：{{ buyProduct.publisher }}</div>
+        <div class="modal-body">
+          <div class="buy-m-title">{{ buyProduct.title }}</div>
+          <div class="buy-m-pub">发布人：{{ buyProduct.publisher }}</div>
+
+          <div v-if="!showCustomPrice" class="buy-m-price">&yen;{{ buyProduct.price }}</div>
+          <div v-else class="buy-m-cp-wrap">
+            <div class="buy-m-cp-original">原价 &yen;{{ buyProduct.price }}</div>
+            <div class="buy-m-cp-input-row">
+              <span class="buy-m-yen">&yen;</span>
+              <input type="number" min="0.01" step="0.01" v-model.number="customAmount" class="buy-m-cp-input" placeholder="输入金额" />
+            </div>
+            <div class="buy-m-cp-hint">参考价 &yen;{{ buyProduct.price }}，可自行调整</div>
+          </div>
+
+          <div v-if="buyProduct && ((buyProduct.description||'').trim() || (buyProduct.buyer_note||'').trim())" class="buy-m-desc">
+            {{ (buyProduct.description||'').trim() || buyProduct.buyer_note }}
+          </div>
+
+          <div class="buy-sep"></div>
+
+          <!-- 买家备注（选填） -->
+          <div class="buy-field">
+            <label class="buy-field-label">备注（选填）</label>
+            <div class="buy-note-wrap">
+              <textarea v-model="buyerNote" class="buy-note-input" placeholder="如：代领快递，取件码 12-3-4" maxlength="500" rows="2"></textarea>
+              <span class="buy-note-count">{{ (buyerNote||'').length }}/500</span>
+            </div>
+          </div>
+
+          <!-- 上传图片（选填） -->
+          <div class="buy-field">
+            <label class="buy-field-label">上传图片（选填）</label>
+            <input type="file" ref="buyImgInput" accept="image/*" capture="environment" style="display:none" @change="pickBuyImg" />
+            <div v-if="!(buyerImgPreview||'')" class="buy-img-placeholder" @click="$refs.buyImgInput && $refs.buyImgInput.click()">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#13c2a3" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5-4 4-2-2-4 4"/></svg>
+              <span>点击上传图片</span>
+              <small>取件码截图 / 代领凭证（最多1张）</small>
+            </div>
+            <div v-else class="buy-img-preview">
+              <img :src="(buyerImgPreview||'')" @click="zoomImg(buyerImgPreview)" />
+              <button class="buy-img-remove" @click.stop="clearBuyImg">&times;</button>
+            </div>
+          </div>
         </div>
         <div class="modal-foot">
           <button class="btn btn-ghost" @click="showBuyModal=false">取消</button>
@@ -101,6 +154,7 @@
 <div id="footer"></div>
 
 <script src="js/v3.2.8/vue.global.prod.js"></script>
+<script src="/config.js"></script>
 <script src="page/js/common.js"></script>
 <script src="page/js/home.js"></script>
 </body>

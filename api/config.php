@@ -1,5 +1,12 @@
 <?php
 /**
+ * 闲置微铺（Idle / xzwp）
+ *
+ * ⚠️ 本项目仅用于学习演示，禁止用于真实资金交易。
+ *    使用者二次开发必须遵守中华人民共和国法律法规；
+ *    若用于非法运营，作者不承担任何法律责任。
+ *    后续公安机关核查时可以佐证你开发时就没有违法意图。
+ *
  * config.php — 闲置微铺 后端公共配置
  *
  * 用法：各 api/*.php 顶部 require_once __DIR__ . '/config.php';
@@ -73,7 +80,19 @@ function body(): array {
 // 需要登录：未登录直接返回 401 并结束
 function require_login() {
     global $session_uid;
-    if ($session_uid === null) json_out(401, '请先登录');
+    if ($session_uid === null) {
+        // 临时诊断：记录请求上下文，便于排查 401
+        $dbg = '[' . date('Y-m-d H:i:s') . '] 401 require_login' . PHP_EOL
+            . '  METHOD=' . ($_SERVER['REQUEST_METHOD'] ?? '') . PHP_EOL
+            . '  URI=' . ($_SERVER['REQUEST_URI'] ?? '') . PHP_EOL
+            . '  ORIGIN=' . ($_SERVER['HTTP_ORIGIN'] ?? '(none)') . PHP_EOL
+            . '  COOKIE_has_PHPSESSID=' . (isset($_COOKIE[session_name()]) ? 'YES' : 'NO') . PHP_EOL
+            . '  PHPSESSID=' . ($_COOKIE[session_name()] ?? '(empty)') . PHP_EOL
+            . '  session_uid=' . var_export($session_uid, true) . PHP_EOL
+            . '  session_save_path=' . session_save_path() . PHP_EOL;
+        @file_put_contents(__DIR__ . '/login_debug.log', $dbg, FILE_APPEND);
+        json_out(401, '请先登录');
+    }
     return $session_uid;
 }
 

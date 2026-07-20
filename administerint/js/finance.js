@@ -84,7 +84,7 @@
         var url = API + '?act=records&type=' + encodeURIComponent(self.currentTab);
         if (self.statusFilter) url += '&status=' + encodeURIComponent(self.statusFilter);
 
-        fetch(url, { credentials: 'same-origin' })
+        fetch(url, { credentials: 'include' })
           .then(function (r) { return r.json(); })
           .then(function (res) {
             self.loading = false;
@@ -199,7 +199,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
-          credentials: 'same-origin'
+          credentials: 'include'
         })
           .then(function (r) { return r.json(); })
           .then(function (res) {

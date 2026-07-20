@@ -15,8 +15,21 @@ console.log('[xzwp] manage.js v20260715c start');
   var _u = {};
   try { var tmp = API.getUser && API.getUser(); if(tmp&&typeof tmp==='object') _u=tmp; } catch(e){}
 
-  /* 登录检查（不阻断渲染） */
-  try { if(App.requireLogin) App.requireLogin(); } catch(e){ console.warn('[xzwp] login跳过:',e); }
+  /* 登录态同步：先从后端拉取，写入localStorage后再渲染导航栏 */
+  var _loginReady = false;
+  function syncLogin() {
+    if (_loginReady) return Promise.resolve();
+    _loginReady = true;
+    /* 如果 localStorage 已有 session，直接通过 */
+    if (App.API && App.API.getSession()) return Promise.resolve();
+    /* 否则请求后端 me 接口，同步登录态到 localStorage */
+    if (App.API && App.API.me) {
+      return App.API.me().then(function(){ return; }).catch(function(){
+        console.warn('[xzwp] me 接口异常');
+      });
+    }
+    return Promise.resolve();
+  }
 
   var app;
   try {
@@ -27,10 +40,11 @@ console.log('[xzwp] manage.js v20260715c start');
           publishing: false,
           imgData: '',
           imgHint: '点击上传商品图',
-          form: { title: '', price: '' },   /* 全部用字符串，避免 null/number 问题 */
+          form: { title: '', price: '', category_id: 0, description: '' },   /* 全部用字符串/数字，避免 null 问题 */
           nick: (_u.nickname||''),
           bal: Number(_u.balance)||0,
           list: [],       /* 原始数组 */
+          categories: [],  /* 分类列表（发布时选择） */
           ok: false        /* mounted 标记 */
         };
       },
@@ -47,8 +61,17 @@ console.log('[xzwp] manage.js v20260715c start');
 
       mounted: function(){
         this.ok = true;
-        try{ if(App.renderNav) App.renderNav('manage.html'); }catch(e){}
-        try{ if(App.renderFooter) App.renderFooter(); }catch(e){}
+        var self = this;
+        /* 加载分类列表 */
+        if(API.getCategories){
+          API.getCategories().then(function(list){ self.categories=list||[]; }).catch(function(){});
+        }
+        /* 子页面：使用顶部返回栏（data-back=../index.html），不渲染底部导航 */
+        syncLogin().then(function(){
+          self.refMe();
+        }).catch(function(){
+          self.refMe();
+        });
       },
 
       methods: {
@@ -91,14 +114,13 @@ console.log('[xzwp] manage.js v20260715c start');
           if(isNaN(pr)||pr<0){ toast('价格无效','err'); return; }
           if(!self.imgData){ toast('请上传图片','err'); return; }
           self.publishing=true;
-          API.createProduct({title:f.title.trim(),price:pr,deposit:0,publisher:self.nick,img:self.imgData,desc:f.title.trim()})
+          API.createProduct({title:f.title.trim(),price:pr,deposit:0,category_id:Number(f.category_id)||0,publisher:self.nick,img:self.imgData,desc:f.description.trim()||f.title.trim()})
             .then(function(r){
               self.publishing=false;
               if(r&&r.code===0){
                 toast('发布成功','ok');
-                f.title='';f.price='';f.deposit='';self.imgData='';
+                f.title='';f.price='';f.deposit='';f.category_id=0;f.description='';self.imgData='';
                 self.refMe(); self.doLoad();
-                try{if(App.renderNav)App.renderNav('manage.html');}catch(e4){}
               }else{ toast((r&&r.msg)||'失败','err'); }
             })
             .catch(function(err){ self.publishing=false; console.error(err); toast('请求失败','err'); });
@@ -127,7 +149,7 @@ console.log('[xzwp] manage.js v20260715c start');
           var nx=this.isOn(p)?'off':'on',self=this;
           API.updateProduct(id,{status:nx})
             .then(function(r){
-              if(r&&r.code===0){ toast(nx==='on'?'已上架':'已下架','ok'); self.refMe();self.doLoad(); try{if(App.renderNav)App.renderNav('manage.html');}catch(e){} }
+              if(r&&r.code===0){ toast(nx==='on'?'已上架':'已下架','ok'); self.refMe();self.doLoad(); }
               else{ toast((r&&r.msg)||'操作失败','err');}
             })
             .catch(function(e){ console.error(e); toast('操作失败','err'); });
@@ -137,7 +159,7 @@ console.log('[xzwp] manage.js v20260715c start');
           var id=this.gId(p); if(id==null)return;
           var self=this,go=function(){
             API.deleteProduct(id).then(function(r){
-              if(r&&r.code===0){ toast('已删除','ok'); self.refMe();self.doLoad(); try{if(App.renderNav)App.renderNav('manage.html');}catch(e){} }
+              if(r&&r.code===0){ toast('已删除','ok'); self.refMe();self.doLoad(); }
               else{ toast((r&&r.msg)||'删除失败','err');}
             }).catch(function(e){ console.error(e); toast('删除失败','err'); });
           };

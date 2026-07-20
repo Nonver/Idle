@@ -8,7 +8,7 @@
   function iconSrc(icon){
     if (!icon) return '';
     if (/^(https?:|\/\/|data:)/.test(icon)) return icon;
-    return '../api/' + icon;
+    return A.API + icon;
   }
 
   var app = Vue.createApp({
@@ -23,7 +23,7 @@
       iconSrc: function(){
         if (!this.form.site_icon) return '';
         if (/^(https?:|\/\/|data:)/.test(this.form.site_icon)) return this.form.site_icon;
-        return '../api/' + this.form.site_icon;
+        return A.API + this.form.site_icon;
       }
     },
     mounted: function(){ this.load(); },

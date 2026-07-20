@@ -287,7 +287,7 @@ input, textarea, select { font-family: inherit; font-size: 16px; color: var(--te
 }
 .modal-card .modal-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px; border-bottom: 1px solid var(--border);
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
 }
 .modal-card .modal-head h3 {
   font-size: 17px; font-weight: 800; margin: 0;
@@ -300,9 +300,9 @@ input, textarea, select { font-family: inherit; font-size: 16px; color: var(--te
   transition: all .15s;
 }
 .modal-card .modal-head button:hover { color: #e5484d; background: #fef2f2; }
-.modal-card .modal-body { padding: 20px 20px 8px; }
+.modal-card .modal-body { padding: 14px 18px 6px; }
 .modal-card .modal-foot {
-  display: flex; gap: 10px; padding: 14px 20px 20px;
+  display: flex; gap: 10px; padding: 10px 18px 16px;
 }
 
 /* ============ 表单 ============ */

@@ -42,7 +42,11 @@
    * index.html 在站点根；其余页面都在 page/ 子目录。
    * 后端 api/ 始终位于站点根，因此按当前页面层级计算基址。 */
   const IN_PAGE = /(^|\/)page(\/|$)/.test(location.pathname);
-  const API_BASE = IN_PAGE ? '../api/' : 'api/';
+  /* API 基址统一指向后端服务器（站点根下的 api/） */
+  /* API 基址：优先读取 config.js 的全局配置，未加载时兜底 */
+  const API_BASE = (typeof window !== 'undefined' && window.XZWP_API)
+    ? window.XZWP_API
+    : '/api/';
   // 图片存于站点根 uploads/，按层级补全（兼容后端返回 'uploads/..' 或 'api/uploads/..'）
   function img(path) {
     if (!path) return '';
@@ -124,9 +128,20 @@
    * API —— 全部对接真实后端；返回形状与页面调用保持一致
    * ========================================================= */
   const API = {
-    /* 商品 */
-    getProducts() {
-      return req(API_BASE + 'products.php', null, { loading: true })
+    /* 商品（支持 params: {limit, kw, cat_id}） */
+    getProducts(params) {
+      var qs = '';
+      if (params && typeof params === 'object') {
+        if (params.limit)  qs += '&limit=' + encodeURIComponent(params.limit);
+        if (params.kw)     qs += '&kw=' + encodeURIComponent(params.kw);
+        if (typeof params.cat_id !== 'undefined') qs += '&cat_id=' + parseInt(params.cat_id || 0);
+      }
+      return req(API_BASE + 'products.php' + (qs ? '?' + qs.slice(1) : ''), null)
+        .then((r) => (ok(r) && r.data) || []);
+    },
+    /* 分类列表 */
+    getCategories() {
+      return req(API_BASE + 'categories.php')
         .then((r) => (ok(r) && r.data) || []);
     },
     /* 轮播图（前端首页） */
@@ -200,9 +215,9 @@
       });
     },
 
-    /* 订单 */
-    createOrder(product) {
-      return req(API_BASE + 'order.php', { productId: product.id }).then((r) => {
+    /* 订单（data = { productId, buyerNote?, buyerImg? }） */
+    createOrder(data) {
+      return req(API_BASE + 'order.php', data).then((r) => {
         if (ok(r)) netCacheClear();
         if (ok(r) && r.data && r.data.user) saveUser(r.data.user);
         return r;

@@ -29,7 +29,7 @@
       imgUrl: function(path){
         if (!path) return '';
         if (/^https?:\/\//.test(path) || /^data:/i.test(path)) return path;
-        var base = (A.API || '../api/').replace(/\/$/, '');
+        var base = A.API.replace(/\/$/, '');
         return base + '/' + path.replace(/^\/+/, '');
       },
       zoom: function(path){ if (path) A.lightbox(this.imgUrl(path)); },

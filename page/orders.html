@@ -8,17 +8,8 @@
   <link rel="stylesheet" href="css/common.css" />
   <link rel="stylesheet" href="css/orders.css" />
 </head>
-<body data-title="我的订单">
-<div id="navbar"></div>
-
+<body data-title="我的订单" data-back="user.html">
 <main class="container" id="ordersApp">
-
-  <!-- 页头 -->
-  <div class="page-header">
-    <button class="back-btn" onclick="history.back()">&lsaquo; 返回</button>
-    <h2 class="page-title">我的订单</h2>
-    <span class="order-count">{{ orderList.length }} 笔</span>
-  </div>
 
   <!-- 状态筛选 Tab -->
   <div class="status-tabs">
@@ -72,9 +63,8 @@
 
 </main>
 
-<div id="footer"></div>
-
 <script src="../js/v3.2.8/vue.global.prod.js"></script>
+<script src="/config.js"></script>
 <script src="js/common.js"></script>
 <script src="js/orders.js"></script>
 </body>

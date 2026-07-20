@@ -27,8 +27,7 @@
       }
     },
     mounted: function(){
-      App.renderNav('orders.html');
-      App.renderFooter();
+      /* 子页面：使用顶部返回栏，不渲染底部导航 */
       this.load();
     },
     methods: {

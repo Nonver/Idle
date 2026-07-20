@@ -18,6 +18,20 @@
  */
 require_once __DIR__ . '/config.php';
 
+/* 保存 base64 图片（管理员发布订单用） */
+function save_image_for_order($dataUrl) {
+    if (!preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $m)) return '';
+    $ext = strtolower($m[1]);
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) $ext = 'jpg';
+    $bin = base64_decode(substr($dataUrl, strpos($dataUrl, ',') + 1), true);
+    if ($bin === false) return '';
+    $dir = __DIR__ . '/uploads';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    $name = uniqid('pub_', true) . '.' . $ext;
+    if (file_put_contents($dir . '/' . $name, $bin) === false) return '';
+    return 'uploads/' . $name;
+}
+
 $act = $_GET['act'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -164,10 +178,17 @@ if ($act === 'products') {
         }
         json_out(1, '未知操作');
     }
-    $kw = trim($_GET['kw'] ?? '');
-    if ($kw !== '') {
+    $kw    = trim($_GET['kw'] ?? '');
+    $catId = intval($_GET['cat_id'] ?? -1);
+    if ($kw !== '' && $catId >= 0) {
+        $st = db()->prepare('SELECT * FROM products WHERE (title LIKE ? OR publisher LIKE ?) AND category_id=? ORDER BY created_at DESC');
+        $st->execute(['%' . $kw . '%', '%' . $kw . '%', $catId]);
+    } elseif ($kw !== '') {
         $st = db()->prepare('SELECT * FROM products WHERE title LIKE ? OR publisher LIKE ? ORDER BY created_at DESC');
         $st->execute(['%' . $kw . '%', '%' . $kw . '%']);
+    } elseif ($catId >= 0) {
+        $st = db()->prepare('SELECT * FROM products WHERE category_id=? ORDER BY created_at DESC');
+        $st->execute([$catId]);
     } else {
         $st = db()->query('SELECT * FROM products ORDER BY created_at DESC');
     }
@@ -211,7 +232,7 @@ if ($act === 'orders') {
         }
 
         if ($_GET['op'] === 'reject') {
-            // 驳回：把托管款项退回买家，商品重新上架
+            // 驳回：把托管款项退回买家，商品重新上架（仅普通订单）
             try {
                 $pdo->beginTransaction();
                 $o = $pdo->prepare('SELECT * FROM orders WHERE id=? FOR UPDATE');
@@ -227,8 +248,14 @@ if ($act === 'orders') {
                     $pdo->prepare('UPDATE users SET balance = balance + ? WHERE id = ?')
                         ->execute([$ord['price'], $buyerRow['id']]);
                 }
-                // 商品重新上架
-                $pdo->prepare('UPDATE products SET status=\'on\' WHERE id=?')->execute([$ord['product_id']]);
+                // 商品重新上架（普通商品）
+                if ($ord['product_id']) {
+                    $pdo->prepare('UPDATE products SET status=\'on\' WHERE id=?')->execute([$ord['product_id']]);
+                }
+                // 管理员发布单：驳回后重新恢复为可购买
+                if ($ord['pub_order_id']) {
+                    $pdo->prepare('UPDATE orders SET status=\'available\' WHERE id=?')->execute([$ord['pub_order_id']]);
+                }
                 $pdo->prepare('UPDATE orders SET status=\'rejected\' WHERE id=?')->execute([$id]);
                 $pdo->commit();
                 json_out(0, '已驳回，款项已退回买家');
@@ -238,9 +265,108 @@ if ($act === 'orders') {
             }
         }
 
+        /* 管理员发布订单（免保证金，用户购买后直接付款到管理员账户） */
+        if ($_GET['op'] === 'publish') {
+            require_admin();
+            session_reopen();
+            $b = body();
+            $title = trim($b['title'] ?? '');
+            $price = floatval($b['price'] ?? 0);
+            $desc = mb_substr(trim($b['description'] ?? ''), 0, 500) ?: '';
+            $customPrice = !empty($b['custom_price']) ? 1 : 0;
+
+            if ($title === '') json_out(1, '请填写商品标题');
+            if ($price <= 0) json_out(1, '价格必须大于0');
+            if ($price > 999999) json_out(1, '价格不能超过999999');
+
+            $categoryId = intval($b['category_id'] ?? 0);
+
+            // 获取管理员信息作为 publisher
+            $adminName = $_SESSION['admin_name'] ?? '管理员';
+
+            // 可选图片（默认空字符串，避免 NULL）
+            $imgVal = (!empty($b['img']) && is_string($b['img'])) ? save_image_for_order($b['img']) : '';
+
+            $sql = "INSERT INTO orders SET "
+                . "product_id=0, title=:t, price=:p, actual_paid=0, publisher=:pub, "
+                . "buyer='', buyer_note='', buyer_img='', img=:imgv, "
+                . "custom_price=:cp, category_id=:cid, description=:descv, "
+                . "created_at=:ct, status='available'";
+            $st = db()->prepare($sql);
+            $st->execute([
+                ':t' => $title,
+                ':p' => $price,
+                ':pub' => $adminName,
+                ':imgv' => $imgVal,
+                ':cp' => $customPrice,
+                ':cid' => $categoryId,
+                ':descv' => $desc,
+                ':ct' => time(),
+            ]);
+
+            json_out(0, '发布成功', ['id' => db()->lastInsertId(), 'title' => $title]);
+        }
+
+        /* 编辑官方商品（仅 available 状态） */
+        if ($_GET['op'] === 'edit_pub') {
+            require_admin();
+            session_reopen();
+            $b = body();
+            $title = trim($b['title'] ?? '');
+            $price = floatval($b['price'] ?? 0);
+            $desc = mb_substr(trim($b['description'] ?? ''), 0, 500) ?: '';
+            $customPrice = !empty($b['custom_price']) ? 1 : 0;
+            $categoryId = intval($b['category_id'] ?? 0);
+
+            if ($title === '') json_out(1, '请填写商品标题');
+            if ($price <= 0) json_out(1, '价格必须大于0');
+            if ($price > 999999) json_out(1, '价格不能超过999999');
+
+            try {
+                $pdo->beginTransaction();
+                $o = $pdo->prepare('SELECT * FROM orders WHERE id=? AND status=\'available\' FOR UPDATE');
+                $o->execute([$id]);
+                $ord = $o->fetch();
+                if (!$ord) { $pdo->rollBack(); json_out(1, '商品不存在或已被购买，无法编辑'); }
+
+                // 图片：若传了新图片则替换，否则保留原图片
+                $img = $ord['img'];
+                if (!empty($b['img']) && is_string($b['img'])) {
+                    $newImg = save_image_for_order($b['img']);
+                    if ($newImg) $img = $newImg;
+                }
+
+                $upd = $pdo->prepare('UPDATE orders SET title=?, price=?, description=?, custom_price=?, category_id=?, img=? WHERE id=?');
+                $upd->execute([$title, $price, $desc, $customPrice, $categoryId, $img, $id]);
+                $pdo->commit();
+                json_out(0, '已更新', ['id' => $id, 'title' => $title]);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                json_out(1, '编辑失败：' . $e->getMessage());
+            }
+        }
+
+        /* 删除已发布但无人购买的订单 */
+        if ($_GET['op'] === 'delete_pub') {
+            require_admin();
+            try {
+                $pdo->beginTransaction();
+                $o = $pdo->prepare('SELECT * FROM orders WHERE id=? AND status=\'available\' FOR UPDATE');
+                $o->execute([$id]);
+                $ord = $o->fetch();
+                if (!$ord) { $pdo->rollBack(); json_out(1, '订单不存在或已被购买，无法删除'); }
+                $pdo->prepare('DELETE FROM orders WHERE id=?')->execute([$id]);
+                $pdo->commit();
+                json_out(0, '已删除');
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                json_out(1, '删除失败：' . $e->getMessage());
+            }
+        }
+
         json_out(1, '未知操作');
     }
-    $st = db()->query('SELECT o.*, p.img AS img, p.deposit AS deposit FROM orders o LEFT JOIN products p ON o.product_id=p.id ORDER BY o.created_at DESC');
+    $st = db()->query('SELECT o.*, COALESCE(p.img, o.img) AS img, p.deposit AS deposit FROM orders o LEFT JOIN products p ON o.product_id=p.id ORDER BY o.created_at DESC');
     json_out(0, '', $st->fetchAll());
 }
 

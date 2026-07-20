@@ -14,3 +14,190 @@
 .fgroup label{font-size:13px;color:var(--muted);font-weight:600}
 .ship-suggest{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f1f5f9;color:var(--text);font-size:13px;font-variant-numeric:tabular-nums}
 .ship-warn{margin-top:12px;color:var(--danger);font-size:13px;font-weight:600}
+
+/* 买家备注/图片列 */
+.col-buyer-info {
+  max-width: 180px; min-width: 120px;
+}
+.buyer-note-cell {
+  font-size: 12px; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; max-width: 160px;
+  cursor: default; line-height: 1.4;
+}
+.buyer-note-cell:hover { white-space: normal; word-break: break-all; }
+.buyer-img-thumb {
+  display: inline-block; width: 40px; height: 40px;
+  object-fit: cover; border-radius: 6px;
+  margin-top: 4px; vertical-align: middle;
+  border: 1.5px solid var(--border); cursor: zoom-in;
+}
+
+/* ========== 发布单标签 ========== */
+.tag-pub {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  vertical-align: middle;
+}
+.badge--pub {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #4338ca;
+  border: none;
+}
+
+/* ========== 发布订单弹窗（复用 categories.css 弹窗框架）========== */
+
+/* 遮罩层 */
+.amodal-overlay {
+  position: fixed; inset: 0;
+  z-index: 9999;
+  background: rgba(15,23,42,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.amodal-wrap {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,.22), 0 0 0 1px rgba(255,255,255,.08) inset;
+  overflow: hidden;
+  animation: amodal-in .28s cubic-bezier(.16,1,.3,1);
+}
+@keyframes amodal-in {
+  from { opacity: 0; transform: translateY(24px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 弹窗头部 */
+.amodal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid #f1f3f5;
+}
+.amodal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.amodal-title svg { width: 20px; height: 20px; color: #8b5cf6; flex-shrink: 0; }
+.amodal-close {
+  width: 32px; height: 32px;
+  border: none; border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 22px; line-height: 1;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.amodal-close:hover { background: #f1f5f9; color: #475569; }
+
+/* 弹窗内容 */
+.amodal-body { padding: 22px 22px 8px; }
+.amodal-field { margin-bottom: 15px; }
+.amodal-label {
+  display: block;
+  font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 7px;
+}
+.amodal-label em { color: #ef4444; font-style: normal; margin-left: 2px; }
+
+.amodal-input {
+  display: block; width: 100%; height: 40px; padding: 0 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 14px; color: #1e293b; background: #fafbfc;
+  transition: all .2s ease; box-sizing: border-box; outline: none;
+}
+.amodal-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.12); background: #fff; }
+.amodal-input::placeholder { color: #c0c9d5; }
+
+.amodal-textarea {
+  display: block; width: 100%; padding: 10px 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 14px; color: #1e293b; background: #fafbfc;
+  resize: vertical; min-height: 64px; line-height: 1.5;
+  transition: all .2s ease; box-sizing: border-box; outline: none; font-family: inherit;
+}
+.amodal-textarea:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.12); background: #fff; }
+.amodal-textarea::placeholder { color: #c0c9d5; }
+
+.amodal-hint {
+  display: block; font-size: 12px; color: #94a3b8; margin-top: 5px; line-height: 1.4;
+}
+
+/* 封面图片上传区 */
+.pub-img-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; height: 120px; border: 2px dashed #d1d5db; border-radius: 12px;
+  cursor: pointer; overflow: hidden; position: relative;
+  transition: border-color .2s ease, background .2s ease;
+  background: #f9fafb;
+}
+.pub-img-area:hover { border-color: #8b5cf6; background: #faf5ff; }
+.pub-img-area.has-img { border-style: solid; border-color: #c4b5fd; }
+.pub-img-area span { font-size: 13px; color: #94a3b8; margin-top: 6px; }
+.pub-img-area svg { width: 32px; height: 32px; opacity: .5; }
+.pub-img-preview {
+  max-width: 100%; max-height: 110px; object-fit: contain; border-radius: 6px;
+}
+.pub-img-del {
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(239,68,68,.85); color: #fff; border: none;
+  font-size: 16px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.pub-img-del:hover { background: #dc2626; }
+
+/* 弹窗底部按钮 */
+.amodal-foot {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 14px 22px 20px; border-top: 1px solid #f1f5f9;
+}
+.amodal-btn {
+  height: 36px; padding: 0 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+  transition: all .2s ease; white-space: nowrap;
+}
+.amodal-btn-cancel { background: #f1f5f9; color: #64748b; }
+.amodal-btn-cancel:hover { background: #e2e8f0; color: #334155; }
+.amodal-btn-pub {
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,.3);
+}
+.amodal-btn-pub:hover:not(:disabled) {
+  background: linear-gradient(135deg,#7c3aed,#6d28d9);
+  box-shadow: 0 4px 12px rgba(124,58,237,.38); transform: translateY(-1px);
+}
+.amodal-btn-pub:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+
+/* 淡入淡出 */
+.amodal-fade-enter-active { transition: opacity .25s ease; }
+.amodal-fade-leave-active { transition: opacity .2s ease; }
+.amodal-fade-enter-from, .amodal-fade-leave-to { opacity: 0; }
+
+/* 响应式 */
+@media (max-width: 520px) {
+  .amodal-overlay { padding: 14px; align-items: flex-end; }
+  .amodal-wrap { max-width: none; border-radius: 16px 16px 0 0;
+    animation: amodal-slide-up .3s cubic-bezier(.16,1,.3,1); }
+  @keyframes amodal-slide-up {
+    from { transform: translateY(100%); opacity: .5; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+}

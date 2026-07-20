@@ -21,7 +21,12 @@
         showBuyModal:false,
         buyProduct:null,
         buying:false,
-        me:null                            /* 当前登录用户，用于判断是否为自己发布的商品 */
+        me:null,                           /* 当前登录用户，用于判断是否为自己发布的商品 */
+        buyerNote:'',                      /* 购买备注（选填） */
+        buyerImg:'',                       /* 购买图片 base64（选填，提交时发后端） */
+        buyerImgPreview:'',                /* 图片预览 URL（前端用，不发后端） */
+        showCustomPrice:false,             /* 是否显示自定义金额输入 */
+        customAmount:0                     /* 自定义购买金额 */
       };
     },
       mounted:function(){
@@ -55,7 +60,16 @@
       resetAutoPlay:function(){ clearInterval(autoTimer); this.autoPlay(); },
       loadProducts:function(){
         var self=this;
-        API.getProducts().then(function(list){self.productList=list||[];});
+        API.getProducts({limit:4}).then(function(list){self.productList=list||[];});
+      },
+      goProducts:function(){
+        window.location.href='page/products.html';
+      },
+      goDetail:function(p){
+        try { sessionStorage.setItem('xzwp_detail_product', JSON.stringify(p)); } catch(e){}
+        var params = 'id=' + (p._type==='admin_order' ? p.order_id : p.id);
+        if(p._type) params += '&type=' + p._type;
+        location.href = 'page/product-detail.html?' + params;
       },
       buy:function(p){
         if(!App.requireLogin())return;
@@ -64,6 +78,17 @@
         this.buyProduct=p;
         this.showBuyModal=true;
         this.buying=false;
+        this.buyerNote='';
+        this.buyerImg='';
+        this.buyerImgPreview='';
+        // 自定义金额
+        if(p._type === 'admin_order' && p.custom_price && Number(p.price) >= 2000){
+          this.showCustomPrice = true;
+          this.customAmount = Number(p.price);
+        } else {
+          this.showCustomPrice = false;
+          this.customAmount = 0;
+        }
       },
       isOwn:function(p){
         try {
@@ -73,15 +98,57 @@
       confirmBuy:function(){
         var self=this;
         if(!self.buyProduct)return;
-        if(self.isOwn(self.buyProduct)){ toast('不能购买自己发布的商品','err'); self.showBuyModal=false; return; }
         self.buying=true;
-        API.createOrder(self.buyProduct).then(function(r){
+        /* 构建下单参数 */
+        var orderData;
+        if (self.buyProduct._type === 'admin_order') {
+          orderData = { orderId: self.buyProduct.order_id };
+          if(self.showCustomPrice && self.customAmount > 0){
+            orderData.customAmount = self.customAmount;
+          }
+        } else {
+          if(self.isOwn(self.buyProduct)){ toast('不能购买自己发布的商品','err'); self.showBuyModal=false; self.buying=false; return; }
+          orderData = { productId: self.buyProduct.id };
+        }
+        if (self.buyerNote) orderData.buyerNote = self.buyerNote;
+        if (self.buyerImg)  orderData.buyerImg  = self.buyerImg;
+        API.createOrder(orderData).then(function(r){
           self.buying=false;
-          if(r.code===0){toast('购买成功，已扣款','ok');self.showBuyModal=false;self.loadProducts();App.renderNav('index.html');}
+          if(r.code===0){toast('购买成功，款项已由平台托管','ok');self.showBuyModal=false;self.loadProducts();App.renderNav('index.html');}
           else toast(r.msg,'err');
         });
+      },
+      /* 选择购买图片 → 转 base64 预览 + 存储 */
+      pickBuyImg:function(e){
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        /* 限制大小 5MB */
+        if (file.size > 5*1024*1024) { toast('图片不能超过 5MB','err'); return; }
+        var self = this;
+        var reader = new FileReader();
+        reader.onload = function(ev){
+          self.buyerImgPreview = ev.target.result;
+          self.buyerImg = ev.target.result;   /* base64 data URL，直接发给后端 */
+        };
+        reader.onerror = function(){ toast('图片读取失败','err'); };
+        reader.readAsDataURL(file);
+        /* 清空 input，允许重复选同一文件 */
+        e.target.value = '';
+      },
+      /* 清除已选图片 */
+      clearBuyImg:function(){
+        this.buyerImg='';
+        this.buyerImgPreview='';
       }
+    },
+    /* 防御：模板渲染异常不白屏，打印到控制台 */
+    errorCaptured:function(err, vm, info){
+      console.error('[xzwp] home 渲染异常:', err, info);
+      return false; /* 不向上传播 */
     }
   });
+  app.config.errorHandler = function(err, vm, info){
+    console.error('[xzwp] home 全局渲染异常:', err, info);
+  };
   try { app.mount('#homeApp'); } catch (e) { console.error('[xzwp] home Vue mount 失败:', e); }
 })();
